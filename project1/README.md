@@ -9,6 +9,13 @@
  -->
 
 # Project 1-词法分析与语法分析
+## lex.l 运行方法
+`flex lex.l`
+
+`gcc lex.yy.c -o lex.out -lfl`
+
+`./lex.out < test/comment_test.spl`
+
 
 ## Part 1 预览
 
