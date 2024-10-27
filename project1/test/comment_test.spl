@@ -1,0 +1,20 @@
+/*
+  This is a test comment.
+  It spans multiple lines.
+  // This is a single-line comment within a block comment.
+*/
+
+// This is a single-line comment within a block comment.
+
+// This is a single-line comment within a /* */ comment. 
+
+/*
+  This is a test comment.
+  It spans multiple lines.
+  There is a *.
+  There are many ********s.
+
+*/
+
+/**** This is a comment ****/
+
