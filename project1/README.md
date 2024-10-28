@@ -16,6 +16,8 @@
 
 `./lex.out < test/comment_test.spl`
 
+`./lex.out < test/general_test.spl`
+
 
 ## Part 1 预览
 
