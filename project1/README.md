@@ -12,7 +12,7 @@
 ## lex.l 运行方法
 `flex lex.l`
 
-`gcc lex.yy.c -o lex.out -lfl`
+`gcc lex.yy.c -o lex.out -lfl` or directly use `make`
 
 `./lex.out < test/comment_test.spl`
 
