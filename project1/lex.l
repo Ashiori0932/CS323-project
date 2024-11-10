@@ -1,12 +1,25 @@
 %{
     #include <stdio.h>
     #include <ctype.h>
-    // #include "syntax.tab.h"
+    #include <stdlib.h>
+    #include "syntax.tab.h"
     
     int lines = 1;
     int comment_state = 0;
     int identifiers = 0;
     int has_error = 0;
+%}
+
+%{
+    /* library inclusions */
+    #include "syntax.tab.h"
+    int yycolno = 1;
+    #define YY_USER_ACTION \
+        yylloc.first_line = yylineno; \
+        yylloc.first_column = yycolno; \
+        yylloc.last_line = yylineno; \
+        yylloc.last_column = yycolno + yyleng; \
+    yycolno += yyleng;
 %}
 
 
@@ -36,7 +49,10 @@ AND "&&"
 OR "||"
 
 
-OP "+"|"-"|"*"|"/"
+ADD "+" 
+SUB "-" 
+MUL "*" 
+DIV "/" 
 SEMI ";"
 COMMA ","
 ASSIGN "="
@@ -92,43 +108,57 @@ RC "}"
     printf("line %d: ID ERROR occur: %s\n", lines, yytext);
 }
 
-{LP} {printf("line %d: LP %s\n", lines, yytext); }
+{IF} {printf("line %d: LP %s\n", lines, yytext); yylval.NODE = new Node("LP"); return LP;}
 
-{RP} {printf("line %d: RP %s\n", lines, yytext); }
+{ELSE} {printf("line %d: ELSE %s\n", lines, yytext); yylval.NODE = new Node("ELSE"); return ELSE;}
 
-{LB} {printf("line %d: LB %s\n", lines, yytext); }
+{WHILE} {printf("line %d: WHILE %s\n", lines, yytext); yylval.NODE = new Node("WHILE"); return WHILE;}
 
-{RB} {printf("line %d: RB %s\n", lines, yytext); }
+{RETURN} {printf("line %d: LP %s\n", lines, yytext); yylval.NODE = new Node("RETURN"); return RETURN;}
 
-{LC} {printf("line %d: LC %s\n", lines, yytext); }
+{LP} {printf("line %d: LP %s\n", lines, yytext); yylval.NODE = new Node("LP"); return LP;}
 
-{RC} {printf("line %d: RC %s\n", lines, yytext); }
+{RP} {printf("line %d: RP %s\n", lines, yytext); yylval.NODE = new Node("RP"); return RP;}
 
-{ASSIGN} {printf("line %d: ASSIGN %s\n", lines, yytext); }
+{LB} {printf("line %d: LB %s\n", lines, yytext); yylval.NODE = new Node("LB"); return LB;}
 
-{COMMA} {printf("line %d: COMMA %s\n", lines, yytext); }
+{RB} {printf("line %d: RB %s\n", lines, yytext); yylval.NODE = new Node("RB"); return RB;}
 
-{LT} {printf("line %d: LT %s\n", lines, yytext); }
+{LC} {printf("line %d: LC %s\n", lines, yytext); yylval.NODE = new Node("LC"); return LC;}
 
-{GT} {printf("line %d: GT %s\n", lines, yytext); }
+{RC} {printf("line %d: RC %s\n", lines, yytext); yylval.NODE = new Node("RC"); return RC;}
 
-{SEMI} {printf("line %d: SEMI %s\n", lines, yytext); }
+{ASSIGN} {printf("line %d: ASSIGN %s\n", lines, yytext); yylval.NODE = new Node("ASSIGN"); return ASSIGN;}
+
+{COMMA} {printf("line %d: COMMA %s\n", lines, yytext); yylval.NODE = new Node("COMMA"); return COMMA}
+
+{LT} {printf("line %d: LT %s\n", lines, yytext); yylval.NODE = new Node("LT"); return LT;}
+
+{GT} {printf("line %d: GT %s\n", lines, yytext); yylval.NODE = new Node("GT"); return GT;}
+
+{SEMI} {printf("line %d: SEMI %s\n", lines, yytext); yylval.NODE = new Node("SEMI"); return SEMI;}
 
 
 {TYPE} {
     printf("line %d: TYPE %s\n", lines, yytext); 
+    yylval.NODE = new Node("TYPE", yytext)
+    return TYPE;
 }
 
 {ID} {
     identifiers++;
-    printf("line %d: Valid identifier %s\n", lines, yytext);    // 以字母或下划线开头，视为有效
+    printf("line %d: Valid identifier %s\n", lines, yytext);
+    yylval.NODE = new Node("ID", yytext)
+    return ID;    // 以字母或下划线开头，视为有效
 } 
 
-{number_INT} {printf("line %d: number_INT %s\n", lines, yytext);}
+{BITOP} {printf("line %d: number_INT %s\n", lines, yytext); yylval.NODE = new Node("BITOP", yytext ); return BITOP}
 
-{number_FLOAT} {printf("line %d: number_float %s\n", lines, yytext);}
+{number_INT} {printf("line %d: number_INT %s\n", lines, yytext); yylval.NODE = new Node("number_INT", atoi(yytext) ); return number_INT}
 
-{CHAR} {printf("line %d: CHAR %s\n", lines, yytext);}
+{number_FLOAT} {printf("line %d: number_float %s\n", lines, yytext); yyval.NODE = new Node("number_FLOAT", atof(yytext));  return number_FLOAT;}
+
+{CHAR} {printf("line %d: CHAR %s\n", lines, yytext); yyval.NODE = new Node("CHAR", yytext); return CHAR;}
 
 "//".* {
     // 单行注释

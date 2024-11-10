@@ -8,7 +8,9 @@ int test_spl()
     float ss = 1.20;
     int sa = _2, float st = 2.0x;
     int s = 0;
-    char ss = '\x85'
+    char ss = '\x85';
+    int a = 1 + 2;
+    float b = 1.0 + 4.0;
 }  
 
 
