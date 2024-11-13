@@ -9,7 +9,29 @@
  -->
 
 # Project 1-词法分析与语法分析
-## lex.l 运行方法
+
+## 按照 [样例仓库](https://github.com/Certseeds/CS323_Compilers_2020F/tree/master) 的框架，项目运行方法：
+生成词法分析器代码:  
+`flex lex.l`  
+生成语法分析器代码：  
+`bison -t -d -v syntax.y`  
+编译 syntax.tab.c 并生成 parser.o 对象文件：  
+`g++ -O3 -c syntax.tab.c -o parser.o -lfl -ly`  
+生成静态库 libparser.a：  
+`ar -rc libparser.a parser.o`  
+编译 node.cpp 并生成 node.o 对象文件：  
+`g++ -O3 -g -std=c++17 -c node.cpp -o node.o`  
+生成静态库 libnode.a：  
+`ar -rc libnode.a node.o`  
+**目前以上命令均可运行，但功能不全；以下命令尚未运行**  
+编译 yyerror_myself.cpp 并生成 yyerror_myself.o 对象文件：  
+`g++ -O3 -g -Wall -std=c++17 -Wextra -c yyerror_myself.cpp -o yyerror_myself.o`  
+生成静态库 libyyerror_myself.a：  
+`ar -rc libyyerror_myself.a yyerror_myself.o`  
+编译 main.cpp 并链接所有静态库，生成可执行文件 splc：  
+`g++ -O3 -g -std=c++17 main.cpp -static -L. -lnode -lyyerror_myself -lparser -o splc`  
+
+## lex.l 运行方法（不可用）
 `flex lex.l`
 
 `gcc lex.yy.c -o lex.out -lfl` or directly use `make`
