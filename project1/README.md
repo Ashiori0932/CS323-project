@@ -25,7 +25,7 @@
 `ar -rc libnode.a node.o`  
 **目前以上命令均可运行，但功能不全；以下命令尚未运行**  
 编译 yyerror_myself.cpp 并生成 yyerror_myself.o 对象文件：  
-`g++ -O3 -g -Wall -std=c++17 -Wextra -c yyerror_myself.cpp -o yyerror_myself.o`  
+`g++ -O3 -g -std=c++17 -c yyerror_myself.cpp -o yyerror_myself.o`  
 生成静态库 libyyerror_myself.a：  
 `ar -rc libyyerror_myself.a yyerror_myself.o`  
 编译 main.cpp 并链接所有静态库，生成可执行文件 splc：  
