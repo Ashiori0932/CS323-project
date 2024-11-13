@@ -1,22 +1,9 @@
 %{
     #include"lex.yy.c"
+    #include "node.hpp"
     void yyerror(const char*);
+    Node* root_node;
 
-    //JUST FOR TEST
-    void print_node(Node* node) {
-        if (node == NULL){
-            print("Fail!")
-            return;
-        }
-        printf("Node type: %s, ", node->type);
-        if (strcmp(node->type, "number_INT") == 0) {
-            printf("Value: %d\n", node->int_value);
-        } else if (strcmp(node->type, "number_FLOAT") == 0) {
-            printf("Value: %f\n", node->float_value);
-        } else if (strcmp(node->type, "CHAR") == 0) {
-        printf("Value: %s\n", node->string_value);
-    }
-}
 %}
 
 %union{
@@ -32,21 +19,22 @@
 %left <NODE> LT LE GT GE NE EQ
 %left <NODE> ADD SUB
 %left <NODE> MUL DIV
-%left <NODE> BITOP
+%left <NODE> BITOP_NOT BITOP_AND BITOP_OR BITOP_XOR
 %left <NODE> LP RP 
 %left <NODE> LB RB
 %token <NODE> SEMI COMMA
 %token <NODE> LC RC
+
 
 %%
 TEST:
     OP
     ;
 OP: 
-    ADD {printf("GET ADD")}
-    | SUB {printf("GET SUB")}
-    | MUL {printf("GET MUL")}
-    | DIV {printf("GET DIV")}
+    ADD {printf("GET ADD");}
+    | SUB {printf("GET SUB");}
+    | MUL {printf("GET MUL");}
+    | DIV {printf("GET DIV");}
     ;
 
 

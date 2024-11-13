@@ -1,8 +1,10 @@
 %{
+    #include "node.hpp"
     #include <stdio.h>
     #include <ctype.h>
     #include <stdlib.h>
     #include "syntax.tab.h"
+    
     
     int lines = 1;
     int comment_state = 0;
@@ -11,7 +13,7 @@
 %}
 
 %{
-    /* library inclusions */
+    /* library inclusions 
     #include "syntax.tab.h"
     int yycolno = 1;
     #define YY_USER_ACTION \
@@ -19,7 +21,7 @@
         yylloc.first_column = yycolno; \
         yylloc.last_line = yylineno; \
         yylloc.last_column = yycolno + yyleng; \
-    yycolno += yyleng;
+    yycolno += yyleng;*/
 %}
 
 
@@ -58,7 +60,10 @@ COMMA ","
 ASSIGN "="
 LT "<"
 GT ">"
-BITOP "!"|"^"|"&"|"\\|"
+BITOP_NOT "!"      
+BITOP_XOR "^"       
+BITOP_AND "&"       
+BITOP_OR "\\|"     
 LP "("
 RP ")"
 LB "["
@@ -108,57 +113,80 @@ RC "}"
     printf("line %d: ID ERROR occur: %s\n", lines, yytext);
 }
 
-{IF} {printf("line %d: LP %s\n", lines, yytext); yylval.NODE = new Node("LP"); return LP;}
+{IF} {printf("line %d: LP %s\n", lines, yytext); yylval.NODE = new Node(Node_TYPE::LP); return LP;}
 
-{ELSE} {printf("line %d: ELSE %s\n", lines, yytext); yylval.NODE = new Node("ELSE"); return ELSE;}
+{ELSE} {printf("line %d: ELSE %s\n", lines, yytext); yylval.NODE = new Node(Node_TYPE::ELSE); return ELSE;}
 
-{WHILE} {printf("line %d: WHILE %s\n", lines, yytext); yylval.NODE = new Node("WHILE"); return WHILE;}
+{WHILE} {printf("line %d: WHILE %s\n", lines, yytext); yylval.NODE = new Node(Node_TYPE::WHILE); return WHILE;}
 
-{RETURN} {printf("line %d: LP %s\n", lines, yytext); yylval.NODE = new Node("RETURN"); return RETURN;}
+{RETURN} {printf("line %d: RETURN %s\n", lines, yytext); yylval.NODE = new Node(Node_TYPE::RETURN); return RETURN;}
 
-{LP} {printf("line %d: LP %s\n", lines, yytext); yylval.NODE = new Node("LP"); return LP;}
+{LP} {printf("line %d: LP %s\n", lines, yytext); yylval.NODE = new Node(Node_TYPE::LP); return LP;}
 
-{RP} {printf("line %d: RP %s\n", lines, yytext); yylval.NODE = new Node("RP"); return RP;}
+{RP} {printf("line %d: RP %s\n", lines, yytext); yylval.NODE = new Node(Node_TYPE::RP); return RP;}
 
-{LB} {printf("line %d: LB %s\n", lines, yytext); yylval.NODE = new Node("LB"); return LB;}
+{LB} {printf("line %d: LB %s\n", lines, yytext); yylval.NODE = new Node(Node_TYPE::LB); return LB;}
 
-{RB} {printf("line %d: RB %s\n", lines, yytext); yylval.NODE = new Node("RB"); return RB;}
+{RB} {printf("line %d: RB %s\n", lines, yytext); yylval.NODE = new Node(Node_TYPE::RB); return RB;}
 
-{LC} {printf("line %d: LC %s\n", lines, yytext); yylval.NODE = new Node("LC"); return LC;}
+{LC} {printf("line %d: LC %s\n", lines, yytext); yylval.NODE = new Node(Node_TYPE::LC); return LC;}
 
-{RC} {printf("line %d: RC %s\n", lines, yytext); yylval.NODE = new Node("RC"); return RC;}
+{RC} {printf("line %d: RC %s\n", lines, yytext); yylval.NODE = new Node(Node_TYPE::RC); return RC;}
 
-{ASSIGN} {printf("line %d: ASSIGN %s\n", lines, yytext); yylval.NODE = new Node("ASSIGN"); return ASSIGN;}
+{ASSIGN} {printf("line %d: ASSIGN %s\n", lines, yytext); yylval.NODE = new Node(Node_TYPE::ASSIGN); return ASSIGN;}
 
-{COMMA} {printf("line %d: COMMA %s\n", lines, yytext); yylval.NODE = new Node("COMMA"); return COMMA}
+{COMMA} {printf("line %d: COMMA %s\n", lines, yytext); yylval.NODE = new Node(Node_TYPE::COMMA); return COMMA;}
 
-{LT} {printf("line %d: LT %s\n", lines, yytext); yylval.NODE = new Node("LT"); return LT;}
+{LT} {printf("line %d: LT %s\n", lines, yytext); yylval.NODE = new Node(Node_TYPE::LT); return LT;}
 
-{GT} {printf("line %d: GT %s\n", lines, yytext); yylval.NODE = new Node("GT"); return GT;}
+{GT} {printf("line %d: GT %s\n", lines, yytext); yylval.NODE = new Node(Node_TYPE::GT); return GT;}
 
-{SEMI} {printf("line %d: SEMI %s\n", lines, yytext); yylval.NODE = new Node("SEMI"); return SEMI;}
+{SEMI} {printf("line %d: SEMI %s\n", lines, yytext); yylval.NODE = new Node(Node_TYPE::SEMI); return SEMI;}
 
+
+{BITOP_NOT} {
+    printf("line %d: BITOP %s\n", lines, yytext);
+    yylval.NODE = new Node(Node_TYPE::BITOP_NOT);
+    return BITOP_NOT;
+}
+
+{BITOP_XOR} {
+    printf("line %d: BITOP %s\n", lines, yytext);
+    yylval.NODE = new Node(Node_TYPE::BITOP_XOR);
+    return BITOP_XOR;
+}
+
+{BITOP_AND} {
+    printf("line %d: BITOP %s\n", lines, yytext);
+    yylval.NODE = new Node(Node_TYPE::BITOP_AND);
+    return BITOP_AND;
+}
+
+{BITOP_OR} {
+    printf("line %d: BITOP %s\n", lines, yytext);
+    yylval.NODE = new Node(Node_TYPE::BITOP_OR);
+    return BITOP_OR;
+}
 
 {TYPE} {
     printf("line %d: TYPE %s\n", lines, yytext); 
-    yylval.NODE = new Node("TYPE", yytext)
+    yylval.NODE = new Node(Node_TYPE::TYPE, yytext);
     return TYPE;
 }
 
 {ID} {
     identifiers++;
     printf("line %d: Valid identifier %s\n", lines, yytext);
-    yylval.NODE = new Node("ID", yytext)
+    yylval.NODE = new Node(Node_TYPE::ID, yytext);
     return ID;    // 以字母或下划线开头，视为有效
-} 
+}
 
-{BITOP} {printf("line %d: number_INT %s\n", lines, yytext); yylval.NODE = new Node("BITOP", yytext ); return BITOP}
+{number_INT} {printf("line %d: number_INT %s\n", lines, yytext); yylval.NODE = new Node(Node_TYPE::NUMBER_INT, yytext); return number_INT;}
 
-{number_INT} {printf("line %d: number_INT %s\n", lines, yytext); yylval.NODE = new Node("number_INT", atoi(yytext) ); return number_INT}
+{number_FLOAT} {printf("line %d: number_float %s\n", lines, yytext); yylval.NODE = new Node(Node_TYPE::NUMBER_FLOAT, yytext); return number_FLOAT;}
 
-{number_FLOAT} {printf("line %d: number_float %s\n", lines, yytext); yyval.NODE = new Node("number_FLOAT", atof(yytext));  return number_FLOAT;}
+{CHAR} {printf("line %d: CHAR %s\n", lines, yytext); yylval.NODE = new Node(Node_TYPE::CHAR, yytext); return CHAR;}
 
-{CHAR} {printf("line %d: CHAR %s\n", lines, yytext); yyval.NODE = new Node("CHAR", yytext); return CHAR;}
 
 "//".* {
     // 单行注释
