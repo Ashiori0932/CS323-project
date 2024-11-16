@@ -36,10 +36,10 @@ hexdigit [0-9abcdefABCDEF]
 hexadecimal [+-]?(0x)({hexdigit}+)
 decimal [+-]?(0|{pos_digit}{digit}*)
 
-number_INT {decimal}|{hexadecimal}
-number_FLOAT (([1-9]{digit}*)|0).(([1-9]{digit}*)|0)
+INT {decimal}|{hexadecimal}
+FLOAT (([1-9]{digit}*)|0).(([1-9]{digit}*)|0)
 CHAR \'(\\x{hexdigit}{2}|.)\'
-WRONG_ID ((number_INT|{number_FLOAT}){ID})
+WRONG_ID ((INT|{FLOAT}){ID})
 
 IF "if"
 ELSE "else"
@@ -181,9 +181,9 @@ RC "}"
     return ID;    // 以字母或下划线开头，视为有效
 }
 
-{number_INT} {printf("line %d: number_INT %s\n", lines, yytext); yylval.NODE = new Node(Node_TYPE::NUMBER_INT, yytext); return number_INT;}
+{INT} {printf("line %d: INT %s\n", lines, yytext); yylval.NODE = new Node(Node_TYPE::INT, yytext); return INT;}
 
-{number_FLOAT} {printf("line %d: number_float %s\n", lines, yytext); yylval.NODE = new Node(Node_TYPE::NUMBER_FLOAT, yytext); return number_FLOAT;}
+{FLOAT} {printf("line %d: float %s\n", lines, yytext); yylval.NODE = new Node(Node_TYPE::FLOAT, yytext); return FLOAT;}
 
 {CHAR} {printf("line %d: CHAR %s\n", lines, yytext); yylval.NODE = new Node(Node_TYPE::CHAR, yytext); return CHAR;}
 

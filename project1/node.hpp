@@ -6,30 +6,13 @@
 
 // 定义节点类型
 enum class Node_TYPE {
-    CHAR,
     TYPE,
     ID,
-    BITOP_NOT,
-    BITOP_XOR,
-    BITOP_AND,
-    BITOP_OR,
-    NUMBER_FLOAT,
-    NUMBER_INT,
-    ASSIGN,
-    COMMA,
-    LT,
-    GT,
-    SEMI,
-    LP,
-    RP,
-    LB,
-    RB,
-    LC,
-    RC,
-    IF,
-    ELSE,
-    WHILE,
-    RETURN,
+    FLOAT,
+    INT,
+    CHAR,
+    NON_TERMINAL,
+    TERMINAL
 };
 
 // Node 类定义
@@ -45,7 +28,10 @@ public:
     std::vector<Node*> nodes;       // 子节点
 
     Node(Node_TYPE type);           // 根据类型构造节点
-    Node(Node_TYPE type, std::string yytext);           
+    Node(Node_TYPE type, std::string yytext);          
+
+    template <typename... Args>
+    Node::Node(Node_TYPE type, std::string yytext, Args... args);
 
     ~Node();                        // 析构函数
 
