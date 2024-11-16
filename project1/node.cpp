@@ -3,8 +3,6 @@
 #include <cstdlib>
 
 
-Node::Node(Node_TYPE type) : type(type), string_value(""), int_value(0), float_value(0.0), char_value(0) {}
-
 Node::Node(Node_TYPE type, std::string yytext) : 
     type(type), string_value(""), 
     int_value(0), 
@@ -38,7 +36,7 @@ Node::Node(Node_TYPE type, std::string yytext) :
             char_value = yytext[0];
             break;
         }
-        case Node_TYPE::NON_TERMINAL: {
+        case Node_TYPE::NONTERMINAL: {
             string_value = yytext;
             break;
         }
@@ -66,37 +64,50 @@ Node::~Node() {
     }
 }
 
-void Node::print() { 
+void Node::print() const { 
     // 根据节点类型输出不同信息
     switch (this->type) {
         case Node_TYPE::TYPE:
-            printf("Node type: TYPE, Value: %s\n", this->string_value.c_str());
+            printf("TYPE: %s\n", this->string_value.c_str());
             break;
         case Node_TYPE::ID:
-            printf("Node type: ID, Value: %s\n", this->string_value.c_str());
+            printf("ID: %s\n", this->string_value.c_str());
             break;
         case Node_TYPE::INT:
-            printf("Node type: INT, Value: %d\n", this->int_value);
+            printf("INT: %d\n", this->int_value);
             break;
         case Node_TYPE::FLOAT:
-            printf("Node type: FLOAT, Value: %f\n", this->float_value);
+            printf("FLOAT: %f\n", this->float_value);
             break;
         case Node_TYPE::CHAR:
-            printf("Node type: CHAR, Value: %s\n", this->string_value.c_str());
+            printf("CHAR: %s\n", this->string_value.c_str());
             break;
-        case Node_TYPE::NON_TERMINAL:
-            printf("Node type: s\n", Node::string_value);
+        case Node_TYPE::NONTERMINAL:
+            printf("s\n", Node::string_value);
             break;
         case Node_TYPE::TERMINAL:
-            printf("Node type: s\n", Node::string_value);
+            printf("s\n", Node::string_value);
+            break;
+        case Node_TYPE::NONE:
             break;
         default:
-            printf("Node type: Unknown\n");
+            printf("Unknown\n");
             break;
     }
 }
 
-
+void Node::print_tree(int space) const {
+    for(int i = 0; i < space; i++) {
+        printf(" ");
+    }
+    this->print();
+    if(this->type == Node_TYPE::NONTERMINAL) {
+        space += 2;
+        for (const auto& child : nodes) {
+            child->print_tree(space);
+        }
+    }
+}
 
 
 

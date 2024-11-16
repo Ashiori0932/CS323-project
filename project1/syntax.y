@@ -1,9 +1,10 @@
 %{
     #include"lex.yy.c"
     #include "node.hpp"
+    #include "error.hpp"
     void yyerror(const char*);
     Node* root_node;
-
+    int has_error = 0;
 %}
 
 %union{
@@ -44,7 +45,7 @@ Program : ExtDefList {
 }
 ;
 
-ExtDefList : { $$ = new Node(NONTERMINAL, "ExtDefList"); };
+ExtDefList : { $$ = new Node(NONE, ""); };
 | ExtDef ExtDefList { $$ = new Node(NONTERMINAL, "ExtDefList", $1, $2); }
 ;
 

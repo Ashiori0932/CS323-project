@@ -11,8 +11,9 @@ enum class Node_TYPE {
     FLOAT,
     INT,
     CHAR,
-    NON_TERMINAL,
-    TERMINAL
+    NONTERMINAL,
+    TERMINAL,
+    NONE
 };
 
 // Node 类定义
@@ -35,8 +36,8 @@ public:
 
     ~Node();                        // 析构函数
 
-    void print();          // 打印节点信息
-
+    void print() const;          // 打印节点信息
+    void print_tree(int space) const;
 };
 
 
