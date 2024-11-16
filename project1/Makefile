@@ -1,19 +1,15 @@
 CC=gcc
+GPP=g++
 FLEX=flex
-wc:
-	$(FLEX) lex.l
-	$(CC) lex.yy.c -lfl -o lex.out
-clean:
-	@rm -f lex.yy.c *.out
-.PHONY: wc
+BISON=bison
+CXX_VERSION = -std=c++17
 
-# CC=gcc
-# FLEX=flex
-# BISON=bison
-# calc:
-# 	$(BISON) -d syntax.y
-# 	$(FLEX) lex.l
-# 	$(CC) syntax.tab.c -lfl -o calc.out
-# clean:
-# 	@rm -f lex.yy.c syntax.tab.c syntax.tab.h *.out syntax.output
-# .PHONY: calc
+splc:
+	@mkdir bin
+	$(BISON) -d syntax.y
+	$(FLEX) lex.l
+	$(GPP) -o bin/splc syntax.tab.c node.cpp error.cpp -lfl $(CXX_VERSION)
+
+clean:	
+	@rm -rf bin lex.yy.c syntax.tab.c syntax.tab.h *.out output.txt
+.PHONY: splc

@@ -1,32 +1,33 @@
 %{
     #include "node.hpp"
-    #include <string> 
     #include <stdio.h>
     #include <ctype.h>
     #include <stdlib.h>
     #include "syntax.tab.h"
-    
+    #include "string.h"
+
+    extern "C" int yylex();
+    extern int has_error;
     
     int lines = 1;
     int comment_state = 0;
     int identifiers = 0;
-    int has_error = 0;
 %}
 
 %{
-    /* library inclusions 
-    #include "syntax.tab.h"
+    /* library inclusions */
     int yycolno = 1;
     #define YY_USER_ACTION \
         yylloc.first_line = yylineno; \
         yylloc.first_column = yycolno; \
         yylloc.last_line = yylineno; \
         yylloc.last_column = yycolno + yyleng; \
-    yycolno += yyleng;*/
+    yycolno += yyleng;
 %}
 
 
 TYPE "int"|"char"|"float"
+STRUCT "struct"
 letter [a-zA-Z]
 letter_ {letter}|_
 digit [0-9]
@@ -40,7 +41,7 @@ decimal [+-]?(0|{pos_digit}{digit}*)
 INT {decimal}|{hexadecimal}
 FLOAT (([1-9]{digit}*)|0).(([1-9]{digit}*)|0)
 CHAR \'(\\x{hexdigit}{2}|.)\'
-WRONG_ID ((INT|{FLOAT}){ID})
+WRONG_ID ({INT}|{FLOAT}){ID}
 
 IF "if"
 ELSE "else"
@@ -113,8 +114,8 @@ RC "}"
 
 {WRONG_ID} {
     // handle identifier mistake
-    has_error = 1;
     printf("line %d: ID ERROR occur: %s\n", lines, yytext);
+    has_error = 1;
 }
 
 {IF} {printf("line %d: LP %s\n", lines, yytext); yylval.node = new Node(Node_TYPE::TERMINAL, "IF"); return LP;}
@@ -219,6 +220,12 @@ RC "}"
     return TYPE;
 }
 
+{STRUCT} {
+    printf("line %d: STRUCT %s\n", lines, yytext); 
+    yylval.node = new Node(Node_TYPE::TERMINAL, "STRUCT"); 
+    return STRUCT;
+}
+
 {ID} {
     identifiers++;
     printf("line %d: Valid identifier %s\n", lines, yytext);
@@ -248,6 +255,11 @@ RC "}"
 
 [ \t\r]+ {
     // 忽略空白字符
+}
+
+. {
+    printf("Unrecognized character: %s\n", yytext);
+    has_error = 1;
 }
 
 %%

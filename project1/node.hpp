@@ -28,11 +28,14 @@ public:
 
     std::vector<Node*> nodes;       // 子节点
 
-    Node(Node_TYPE type);           // 根据类型构造节点
     Node(Node_TYPE type, std::string yytext);          
 
     template <typename... Args>
-    Node::Node(Node_TYPE type, std::string yytext, Args... args);
+    Node(Node_TYPE type, std::string yytext, Args... args) : 
+    type(type), string_value(yytext), int_value(0), 
+    float_value(0.0), char_value(0) {
+        nodes = {args...};
+    }
 
     ~Node();                        // 析构函数
 

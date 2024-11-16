@@ -51,12 +51,12 @@ Node::Node(Node_TYPE type, std::string yytext) :
     }
 }
 
-template <typename... Args>
-Node::Node(Node_TYPE type, std::string yytext, Args... args) : 
-    type(type), string_value(yytext), int_value(0), 
-    float_value(0.0), char_value(0) {
-        nodes = {args...};
-    }
+// template <typename... Args>
+// Node::Node(Node_TYPE type, std::string yytext, Args... args) : 
+//     type(type), string_value(yytext), int_value(0), 
+//     float_value(0.0), char_value(0) {
+//         nodes = {args...};
+//     }
 
 Node::~Node() {
     for (auto node : nodes) {
@@ -83,10 +83,10 @@ void Node::print() const {
             printf("CHAR: %s\n", this->string_value.c_str());
             break;
         case Node_TYPE::NONTERMINAL:
-            printf("s\n", Node::string_value);
+            printf("%s\n", Node::string_value.c_str());
             break;
         case Node_TYPE::TERMINAL:
-            printf("s\n", Node::string_value);
+            printf("%s\n", Node::string_value.c_str());
             break;
         case Node_TYPE::NONE:
             break;
