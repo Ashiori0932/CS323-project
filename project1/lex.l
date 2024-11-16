@@ -52,15 +52,18 @@ AND "&&"
 OR "||"
 
 
-ADD "+" 
-SUB "-" 
+PLUS "+" 
+MINUS "-" 
 MUL "*" 
 DIV "/" 
+DOT "."
 SEMI ";"
 COMMA ","
 ASSIGN "="
 LT "<"
+LE "<="
 GT ">"
+GE ">="
 BITOP_NOT "!"      
 BITOP_XOR "^"       
 BITOP_AND "&"       
@@ -138,12 +141,53 @@ RC "}"
 
 {COMMA} {printf("line %d: COMMA %s\n", lines, yytext); yylval.node = new Node(Node_TYPE::TERMINAL, "COMMA"); return COMMA;}
 
+{PLUS} {
+    printf("line %d: PLUS %s\n", lines, yytext); 
+    yylval.node = new Node(Node_TYPE::TERMINAL, "PLUS"); 
+    return PLUS;
+}
+
+{MINUS} {
+    printf("line %d: MINUS %s\n", lines, yytext); 
+    yylval.node = new Node(Node_TYPE::TERMINAL, "MINUS"); 
+    return MINUS;
+}
+
+{MUL} {
+    printf("line %d: MUL %s\n", lines, yytext); 
+    yylval.node = new Node(Node_TYPE::TERMINAL, "MUL"); 
+    return MUL;
+}
+
+{DIV} {
+    printf("line %d: DIV %s\n", lines, yytext); 
+    yylval.node = new Node(Node_TYPE::TERMINAL, "DIV"); 
+    return DIV;
+}
+
 {LT} {printf("line %d: LT %s\n", lines, yytext); yylval.node = new Node(Node_TYPE::TERMINAL, "LT"); return LT;}
+
+{LE} {printf("line %d: LE %s\n", lines, yytext); yylval.node = new Node(Node_TYPE::TERMINAL, "LE"); return LE;}
 
 {GT} {printf("line %d: GT %s\n", lines, yytext); yylval.node = new Node(Node_TYPE::TERMINAL, "GT"); return GT;}
 
+{GE} {printf("line %d: GE %s\n", lines, yytext); yylval.node = new Node(Node_TYPE::TERMINAL, "GE"); return GE;}
+
+{DOT} {printf("line %d: DOT %s\n", lines, yytext); yylval.node = new Node(Node_TYPE::TERMINAL, "DOT"); return DOT;}
+
 {SEMI} {printf("line %d: SEMI %s\n", lines, yytext); yylval.node = new Node(Node_TYPE::TERMINAL, "SEMI"); return SEMI;}
 
+{AND} {
+    printf("line %d: AND %s\n", lines, yytext); 
+    yylval.node = new Node(Node_TYPE::TERMINAL, "AND"); 
+    return AND;
+}
+
+{OR} {
+    printf("line %d: OR %s\n", lines, yytext); 
+    yylval.node = new Node(Node_TYPE::TERMINAL, "OR"); 
+    return OR;
+}
 
 {BITOP_NOT} {
     printf("line %d: BITOP %s\n", lines, yytext);

@@ -36,10 +36,10 @@ Node::Node(Node_TYPE type, std::string yytext) :
             char_value = yytext[0];
             break;
         }
-        case Node_TYPE::NONTERMINAL: {
-            string_value = yytext;
-            break;
-        }
+        // case Node_TYPE::NONTERMINAL: {
+        //     string_value = yytext;
+        //     break;
+        // }
         case Node_TYPE::TERMINAL: {
             string_value = yytext;
             break;
@@ -53,7 +53,7 @@ Node::Node(Node_TYPE type, std::string yytext) :
 
 template <typename... Args>
 Node::Node(Node_TYPE type, std::string yytext, Args... args) : 
-    type(type), string_value(""), int_value(0), 
+    type(type), string_value(yytext), int_value(0), 
     float_value(0.0), char_value(0) {
         nodes = {args...};
     }
