@@ -189,7 +189,7 @@ Args: Exp COMMA Args { $$ = new Node(Node_TYPE::NONTERMINAL, "Args", $1, $2, $3)
 
 %%
 void yyerror(const char *s){
-    fprintf(stderr, "%s\n", s);
+    // fprintf(stderr, "%s\n", s);
 }
 
 int main(){
