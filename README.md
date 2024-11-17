@@ -5,8 +5,8 @@
 make 
 
 测试parser:
-cd bin
-echo "tested codes" | ./splc
+echo "tested codes" | ./splc **or**
+./splc < test/test02.spl
 
 This project divides into four phases.
 During this project, we aim to build a compiler for SPL(Sustech Programming Language).
