@@ -24,6 +24,10 @@ void print_error(ERROR_TYPE type, int line_num) {
             printf("Error type B at Line %d: Missing closing bracket \']\'\n", line_num);
             break;
         }
+        case MISSING_OPERAND: { // 缺少操作数
+            printf("Error type B at Line %d: Missing operand for the operator\n", line_num);
+            break;
+        }
     }
 }
    

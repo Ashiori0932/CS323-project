@@ -134,7 +134,7 @@ DefList: { $$ = new Node(Node_TYPE::NONE, ""); };
 
 Def: Specifier DecList SEMI { $$ = new Node(Node_TYPE::NONTERMINAL, "Def", $1, $2, $3); }
 | Specifier DecList error{ print_error(MISS_SEMI, @$.first_line); has_error = 1; } //
-| error DecList SEMI { print_error(MISS_SPEC, @$.first_line +1); has_error = 1; } //
+| error DecList SEMI { print_error(MISS_SPEC, @$.first_line); has_error = 1; } //
 ;
 
 DecList: Dec { $$ = new Node(Node_TYPE::NONTERMINAL, "DecList", $1); }
@@ -173,7 +173,11 @@ Exp: Exp ASSIGN Exp { $$ = new Node(Node_TYPE::NONTERMINAL, "Exp", $1, $2, $3); 
 | LP Exp error { print_error(MISS_RP, @$.first_line); has_error = 1; } // 
 | ID LP Args error { print_error(MISS_RP, @$.first_line); has_error = 1; } //
 | ID LP error { print_error(MISS_RP, @$.first_line); has_error = 1; } //
-| Exp LB Exp error { print_error(MISS_RB, @$.first_line); has_error = 1; } //
+| Exp LB Exp error { print_error(MISSING_OPERAND, @$.first_line); has_error = 1; } //
+| Exp PLUS error { print_error(MISSING_OPERAND, @$.first_line); has_error = 1; } // test1 error
+| Exp MINUS error { print_error(MISSING_OPERAND, @$.first_line); has_error = 1; }
+| Exp MUL error { print_error(MISSING_OPERAND, @$.first_line); has_error = 1; }
+| Exp DIV error { print_error(MISSING_OPERAND, @$.first_line); has_error = 1; }
 ;
 
 Args: Exp COMMA Args { $$ = new Node(Node_TYPE::NONTERMINAL, "Args", $1, $2, $3); }

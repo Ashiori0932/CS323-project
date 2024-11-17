@@ -18,7 +18,7 @@
     /* library inclusions */
     int yycolno = 1;
     #define YY_USER_ACTION \
-        yylloc.first_line = yylineno; \
+        yylloc.first_line = lines; \
         yylloc.first_column = yycolno; \
         yylloc.last_line = yylineno; \
         yylloc.last_column = yycolno + yyleng; \
@@ -84,31 +84,31 @@ RC "}"
 "/*" {
     // 进入注释状态
     comment_state = 1;
-    printf("%d Entering comment state\n", comment_state);
+    //printf("%d Entering comment state\n", comment_state);
     BEGIN(comment);
 }
 
 
 <comment>[^*\n]* {
     // 处理不含 '*' 的内容 
-    printf("Comment content (not '*'): %s\n", yytext);
+    //printf("Comment content (not '*'): %s\n", yytext);
 }
 
 <comment>"*"+[^/*\n]* {
     // 处理含 '*' 但不跟随 '/' 的情况 
-    printf("Comment content (multiple '*'): %s\n", yytext);
+    //printf("Comment content (multiple '*'): %s\n", yytext);
 }
 
 <comment>\n {
     // 注释内的行数统计
     ++lines; 
-    printf("New line in comment, total lines: %d\n", lines);
+    //printf("New line in comment, total lines: %d\n", lines);
 }
 
 <comment>"*"+"/" {
     // 退出注释状态
     comment_state = 0;
-    printf("%d Exiting comment state\n", comment_state);
+    //printf("%d Exiting comment state\n", comment_state);
     BEGIN(INITIAL);
 }
 
@@ -253,8 +253,8 @@ RC "}"
 "//".* {
     // 单行注释
     comment_state = 1;
-    printf("Single line comment: %s\n", yytext);
-    printf("%d Single line comment is out of comment state\n", comment_state);
+    //printf("Single line comment: %s\n", yytext);
+    //printf("%d Single line comment is out of comment state\n", comment_state);
 }
 
 \n {
