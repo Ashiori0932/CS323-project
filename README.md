@@ -5,7 +5,7 @@
 make 
 
 测试parser:
-echo "tested codes" | ./splc
+echo "tested codes" | ./splc **or**
 ./splc < test/test02.spl
 
 This project divides into four phases.
