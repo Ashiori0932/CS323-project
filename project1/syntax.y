@@ -121,10 +121,10 @@ IF LP Exp RP Stmt ELSE Stmt {
 WHILE LP Exp RP Stmt { 
     $$ = new Node(Node_TYPE::NONTERMINAL, "Stmt", $1, $2, $3, $4, $5); 
 }
-| Exp error { print_error(MISS_SEMI, @$.first_line); printf("this 123\n"); has_error = 1; } // first this/////////////////////////
-| RETURN Exp error { print_error(MISS_SEMI, @$.first_line); printf("this"); has_error = 1; } //
-| IF LP Exp error Stmt { print_error(MISS_RP, @$.first_line); printf("that\n"); has_error = 1; } // second this//////////////////////////
-| WHILE LP Exp error Stmt { print_error(MISS_RP, @$.first_line); printf("this 2"); has_error = 1; } //
+| Exp error { print_error(MISS_SEMI, @$.first_line); has_error = 1; } //
+| RETURN Exp error { print_error(MISS_SEMI, @$.first_line); has_error = 1; } //
+| IF LP Exp error Stmt { print_error(MISS_RP, @$.first_line); has_error = 1; } //
+| WHILE LP Exp error Stmt { print_error(MISS_RP, @$.first_line); has_error = 1; } //
 ;
 
 /* local definition */ 
@@ -133,8 +133,8 @@ DefList: { $$ = new Node(Node_TYPE::NONE, ""); };
 ; 
 
 Def: Specifier DecList SEMI { $$ = new Node(Node_TYPE::NONTERMINAL, "Def", $1, $2, $3); }
-| Specifier DecList error{ print_error(MISS_SEMI, @$.first_line); printf("this 3"); has_error = 1; } //
-| error DecList SEMI { print_error(MISS_SPEC, @$.first_line +1); printf("this 4"); has_error = 1; } //
+| Specifier DecList error{ print_error(MISS_SEMI, @$.first_line); has_error = 1; } //
+| error DecList SEMI { print_error(MISS_SPEC, @$.first_line +1); has_error = 1; } //
 ;
 
 DecList: Dec { $$ = new Node(Node_TYPE::NONTERMINAL, "DecList", $1); }
@@ -170,10 +170,10 @@ Exp: Exp ASSIGN Exp { $$ = new Node(Node_TYPE::NONTERMINAL, "Exp", $1, $2, $3); 
 | INT { $$ = new Node(Node_TYPE::NONTERMINAL, "Exp", $1); }
 | FLOAT { $$ = new Node(Node_TYPE::NONTERMINAL, "Exp", $1); }
 | CHAR { $$ = new Node(Node_TYPE::NONTERMINAL, "Exp", $1); }
-| LP Exp error { print_error(MISS_RP, @$.first_line); printf("this 5"); has_error = 1; } // 
-| ID LP Args error { print_error(MISS_RP, @$.first_line); printf("this 6"); has_error = 1; } //
-| ID LP error { print_error(MISS_RP, @$.first_line); printf("this 7"); has_error = 1; } //
-| Exp LB Exp error { print_error(MISS_RB, @$.first_line); printf("this 8"); has_error = 1; } //
+| LP Exp error { print_error(MISS_RP, @$.first_line); has_error = 1; } // 
+| ID LP Args error { print_error(MISS_RP, @$.first_line); has_error = 1; } //
+| ID LP error { print_error(MISS_RP, @$.first_line); has_error = 1; } //
+| Exp LB Exp error { print_error(MISS_RB, @$.first_line); has_error = 1; } //
 ;
 
 Args: Exp COMMA Args { $$ = new Node(Node_TYPE::NONTERMINAL, "Args", $1, $2, $3); }
