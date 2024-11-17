@@ -97,10 +97,13 @@ void Node::print() const {
 }
 
 void Node::print_tree(int space) const {
-    for(int i = 0; i < space; i++) {
-        printf(" ");
+    if (this->type != Node_TYPE::NONE) {
+        for(int i = 0; i < space; i++) {
+            printf(" ");
+        }
+        this->print();
     }
-    this->print();
+    
     if(this->type == Node_TYPE::NONTERMINAL) {
         space += 2;
         for (const auto& child : nodes) {

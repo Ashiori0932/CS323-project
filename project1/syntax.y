@@ -43,6 +43,7 @@ Program : ExtDefList {
     $$ = new Node(Node_TYPE::NONTERMINAL, "Program", $1); 
     if(!has_error) {
         $$->print_tree(0);
+        printf("\n");
     }
 }
 ;
@@ -71,7 +72,7 @@ StructSpecifier: STRUCT ID LC DefList RC {
     $$ = new Node(Node_TYPE::NONTERMINAL, "StructSpecifier", $1, $2, $3, $4, $5); 
 }
 | STRUCT ID { $$ = new Node(Node_TYPE::NONTERMINAL, "StructSpecifier", $1, $2); }
-| STRUCT ID LC DefList error { print_error(MISS_RC, @$.first_line); has_error = 1; } //
+// | STRUCT ID LC DefList error { print_error(MISS_RC, @$.first_line); has_error = 1; } //
 ;
 
 /* declarator */

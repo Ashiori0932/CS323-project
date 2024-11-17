@@ -118,9 +118,17 @@ RC "}"
     has_error = 1;
 }
 
-{IF} {printf("line %d: LP %s\n", lines, yytext); yylval.node = new Node(Node_TYPE::TERMINAL, "IF"); return LP;}
+{IF} {
+    printf("line %d: LP %s\n", lines, yytext); 
+    yylval.node = new Node(Node_TYPE::TERMINAL, "IF"); 
+    return LP;
+}
 
-{ELSE} {printf("line %d: ELSE %s\n", lines, yytext); yylval.node = new Node(Node_TYPE::TERMINAL, "ELSE"); return ELSE;}
+{ELSE} {
+    printf("line %d: ELSE %s\n", lines, yytext); 
+    yylval.node = new Node(Node_TYPE::TERMINAL, "ELSE"); 
+    return ELSE;
+}
 
 {WHILE} {printf("line %d: WHILE %s\n", lines, yytext); yylval.node = new Node(Node_TYPE::TERMINAL, "WHILE"); return WHILE;}
 
