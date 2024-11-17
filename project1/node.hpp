@@ -30,6 +30,7 @@ public:
 
     Node(Node_TYPE type, std::string yytext);          
 
+    //constructor for nodes of nonterminals
     template <typename... Args>
     Node(Node_TYPE type, std::string yytext, Args... args) : 
     type(type), string_value(yytext), int_value(0), 

@@ -33,7 +33,7 @@ Node::Node(Node_TYPE type, std::string yytext) :
         }
         case Node_TYPE::CHAR: {
             // 直接取字符的第一个字符并存储
-            char_value = yytext[0];
+            char_value = yytext[1];
             break;
         }
         // case Node_TYPE::NONTERMINAL: {
@@ -80,7 +80,7 @@ void Node::print() const {
             printf("FLOAT: %f\n", this->float_value);
             break;
         case Node_TYPE::CHAR:
-            printf("CHAR: %s\n", this->string_value.c_str());
+            printf("CHAR: %c\n", this->char_value);
             break;
         case Node_TYPE::NONTERMINAL:
             printf("%s\n", Node::string_value.c_str());
