@@ -7,54 +7,46 @@ import SPL.splParser;
 
 public class spltest {
     public static void main(String[] args) throws IOException {
-        String inputFilePath = "./test/test02.spl"; 
-
-        String inputFileName = new File(inputFilePath).getName();
-        String outputFileName = inputFileName.substring(0, inputFileName.lastIndexOf('.')) + "_parse_tree.txt";
-
-        File outputDir = new File("./output");
-        if (!outputDir.exists()) {
-            boolean created = outputDir.mkdirs();
-        }
-
-        InputStream is = new FileInputStream(inputFilePath);
+        InputStream is = new FileInputStream("./phase1/test_1_r02.spl"); // 输入文件
         ANTLRInputStream input = new ANTLRInputStream(is);
         splLexer lexer = new splLexer(input);
         CommonTokenStream tokens = new CommonTokenStream(lexer);
         splParser parser = new splParser(tokens);
-        ParseTree tree = parser.program();
+        ParseTree tree = parser.program(); // program 是起始规则
 
-        String formattedTree = formatTree(tree, 0);
-
+        // 转换成缩进格式的树
+        String formattedTree = formatParseTree(tree, parser, 0);
         System.out.println(formattedTree);
 
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter("./output/" + outputFileName))) {
-            writer.write(formattedTree);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
-    private static String formatTree(ParseTree tree, int level) {
+    /**
+     * 将 ParseTree 转换成缩进格式的树
+     * @param tree 当前节点
+     * @param parser 解析器，用于获取规则名称
+     * @param level 当前深度，用于计算缩进
+     * @return 缩进格式的树字符串
+     */
+    public static String formatParseTree(ParseTree tree, Parser parser, int level) {
         StringBuilder sb = new StringBuilder();
-        String indent = "  ".repeat(level); 
-
-        sb.append(indent).append("("); 
-        sb.append(tree.getClass().getSimpleName());
-
-        if (tree instanceof TerminalNode) {
-            TerminalNode terminalNode = (TerminalNode) tree;
-            sb.append(" ").append(terminalNode.getText()); 
+        // 缩进
+        for (int i = 0; i < level; i++) {
+            sb.append("  ");
         }
 
-        if (tree.getChildCount() > 0) {
-            sb.append("\n"); 
-            for (int i = 0; i < tree.getChildCount(); i++) {
-                sb.append(formatTree(tree.getChild(i), level + 1)); 
-            }
-            sb.append(indent).append(")").append("\n"); 
-        } else {
-            sb.append(")").append("\n"); 
+        // 获取当前节点的名称
+        if (tree instanceof RuleNode) { // 规则节点
+            int ruleIndex = ((RuleNode) tree).getRuleContext().getRuleIndex();
+            String ruleName = parser.getRuleNames()[ruleIndex];
+            sb.append(ruleName).append(" (").append(level + 1).append(")\n");
+        } else if (tree instanceof TerminalNode) { // 终结符节点
+            String text = tree.getText();
+            sb.append(text).append("\n");
+        }
+
+        // 递归处理子节点
+        for (int i = 0; i < tree.getChildCount(); i++) {
+            sb.append(formatParseTree(tree.getChild(i), parser, level + 1));
         }
 
         return sb.toString();

@@ -32,3 +32,5 @@ javac SPL/*.java
 ```
 javac spltest.java && java spltest
 ```
+## 测试命令
+grun SPL.spl program -tree ./test/test03.spl
