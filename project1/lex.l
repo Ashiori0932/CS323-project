@@ -2,6 +2,8 @@
     #include "node.hpp"
     #include <stdio.h>
     #include <ctype.h>
+    #include <cstdio>
+    #include <cstdlib>
     #include <stdlib.h>
     #include "syntax.tab.h"
     #include "string.h"
@@ -33,15 +35,20 @@ letter_ {letter}|_
 digit [0-9]
 pos_digit [1-9]
 ID ({letter_})+({letter}|{digit}|_)*
+hex [0-9a-fA-F]
 
-hexdigit [0-9abcdefABCDEF]
-hexadecimal [+-]?(0x)({hexdigit}+)
+INT_16 0[xX](0|[1-9a-fA-F]{hex}*)
+
+hexadecimal [+-]?(0x)({hex}+)
 decimal [+-]?(0|{pos_digit}{digit}*)
 
 INT {decimal}|{hexadecimal}
 FLOAT (([1-9]{digit}*)|0).(([1-9]{digit}*)|0)
-CHAR \'(\\x{hexdigit}{2}|.)\'
-WRONG_ID ({INT}|{FLOAT}){ID}
+CHAR '.'
+CHAR_16 \'\\(x|X){hex}+\'
+WRONG_ID ({INT}){ID}
+
+CHAR_16_illgeal_char '\\x([g-zG-Z]){hex}*'
 
 IF "if"
 ELSE "else"
@@ -111,13 +118,6 @@ RC "}"
     //printf("%d Exiting comment state\n", comment_state);
     BEGIN(INITIAL);
 }
-
-{WRONG_ID} {
-    // handle identifier mistake
-    printf("line %d: ID ERROR occur: %s\n", lines, yytext);
-    has_error = 1;
-}
-
 {IF} {
     //printf("line %d: IF %s\n", lines, yytext); 
     yylval.node = new Node(Node_TYPE::TERMINAL, "IF"); 
@@ -145,6 +145,8 @@ RC "}"
 {LC} { yylval.node = new Node(Node_TYPE::TERMINAL, "LC"); return LC;}
 
 {RC} { yylval.node = new Node(Node_TYPE::TERMINAL, "RC"); return RC;}
+
+{NE} {yylval.node = new Node(Node_TYPE::TERMINAL, "NE"); return NE;}
 
 {ASSIGN} { yylval.node = new Node(Node_TYPE::TERMINAL, "ASSIGN"); return ASSIGN;}
 
@@ -243,11 +245,30 @@ RC "}"
     return ID;    // 以字母或下划线开头，视为有效
 }
 
-{INT} { yylval.node = new Node(Node_TYPE::INT, yytext); return INT;}
+{INT} { yylval.node = new Node(std::atoi(yytext)); return INT;}
 
 {FLOAT} { yylval.node = new Node(Node_TYPE::FLOAT, yytext); return FLOAT;}
 
 {CHAR} { yylval.node = new Node(Node_TYPE::CHAR, yytext); return CHAR;}
+
+{CHAR_16} { yylval.node = new Node(Node_TYPE::CHAR, yytext); return CHAR;}
+
+{INT_16} {
+    yylval.node = new Node(static_cast<int>(strtol(yytext,nullptr,0)));
+    return INT;
+}
+
+{CHAR_16_illgeal_char} {
+    has_error=1;
+    fprintf(stdout,"Error type A at Line %d: unknown lexeme %s\n",lines, yytext);
+    return ILLEGAL_TOKEN;
+}
+
+{WRONG_ID} {
+    // handle identifier mistake
+    printf("line %d: ID ERROR occur: %s\n", lines, yytext);
+    has_error = 1;
+}
 
 
 "//".* {

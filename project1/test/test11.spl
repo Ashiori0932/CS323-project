@@ -1,0 +1,3 @@
+int test(){
+    char c = '\x01';
+}

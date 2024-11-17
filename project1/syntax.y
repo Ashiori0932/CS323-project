@@ -12,6 +12,10 @@
     Node* node;
 }
 
+%nonassoc <node> ILLEGAL_TOKEN
+%nonassoc LOWER_ELSE
+%nonassoc <node> ELSE
+
 %token <node> TYPE STRUCT
 %token <node> IF WHILE RETURN
 %token <node> FLOAT INT CHAR
@@ -29,10 +33,6 @@
 
 %token <node> SEMI COMMA
 %token <node> LC RC
-
-%nonassoc <node> ILLEGAL_TOKEN
-%nonassoc LOWER_ELSE
-%nonassoc <node> ELSE
 
 %type <node> Program ExtDefList ExtDef ExtDecList
 %type <node> Specifier StructSpecifier 
@@ -178,6 +178,8 @@ Exp: Exp ASSIGN Exp { $$ = new Node(Node_TYPE::NONTERMINAL, "Exp", $1, $2, $3); 
 | Exp MINUS error { print_error(MISSING_OPERAND, @$.first_line); has_error = 1; }
 | Exp MUL error { print_error(MISSING_OPERAND, @$.first_line); has_error = 1; }
 | Exp DIV error { print_error(MISSING_OPERAND, @$.first_line); has_error = 1; }
+| Exp ILLEGAL_TOKEN Exp {}
+| ILLEGAL_TOKEN {}
 ;
 
 Args: Exp COMMA Args { $$ = new Node(Node_TYPE::NONTERMINAL, "Args", $1, $2, $3); }

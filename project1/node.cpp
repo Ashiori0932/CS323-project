@@ -7,8 +7,8 @@ Node::Node(Node_TYPE type, std::string yytext) :
     type(type), string_value(""), 
     int_value(0), 
     float_value(0.0), 
-    char_value(0)
-     {
+    char_value("")
+    {
     
     switch (type) {
         case Node_TYPE::TYPE: {
@@ -21,11 +21,6 @@ Node::Node(Node_TYPE type, std::string yytext) :
             string_value = yytext;
             break;
         }
-        case Node_TYPE::INT: {
-            // 将yytext转为整数并存储
-            int_value = std::stoi(yytext);
-            break;
-        }
         case Node_TYPE::FLOAT: {
             // 将yytext转为浮点数并存储
             float_value = std::stof(yytext);
@@ -33,7 +28,7 @@ Node::Node(Node_TYPE type, std::string yytext) :
         }
         case Node_TYPE::CHAR: {
             // 直接取字符的第一个字符并存储
-            char_value = yytext[1];
+            char_value = yytext;
             break;
         }
         // case Node_TYPE::NONTERMINAL: {
@@ -50,6 +45,8 @@ Node::Node(Node_TYPE type, std::string yytext) :
         }
     }
 }
+
+Node::Node(int value) : type(Node_TYPE::INT), int_value(value) {}
 
 // template <typename... Args>
 // Node::Node(Node_TYPE type, std::string yytext, Args... args) : 
@@ -80,7 +77,7 @@ void Node::print() const {
             printf("FLOAT: %f\n", this->float_value);
             break;
         case Node_TYPE::CHAR:
-            printf("CHAR: %c\n", this->char_value);
+            printf("CHAR: %s\n", this->char_value.c_str());
             break;
         case Node_TYPE::NONTERMINAL:
             printf("%s\n", Node::string_value.c_str());
