@@ -7,8 +7,20 @@
  * @LastEditTime: 2020-10-03 20:22:40
  * @License: CC-BY-NC-SA_V4_0 or any later version 
  -->
-
+ 
 # Project 1-词法分析与语法分析
+
+## test result
+ 
+| r1  | r2  | r3  | r4  | r5  | r6  | r7  | r8  | r9  | r10 | r11 | r12 |
+|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|
+| T   | T   | F   | T   | T   | T   | F   | T   | T   | F   | F   | T   |
+
+| s1  | s2  | s3  | s4  | s5  | s6  | s7  | s8  | s9  | s10 | s11 | s12 | s13 |
+|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|
+| F   | T   | F   | F   | F   | T   | T   | F   | F   | F   | F   | F   | F   |
+
+
 
 ## 按照 [样例仓库](https://github.com/Certseeds/CS323_Compilers_2020F/tree/master) 的框架，项目运行方法：
 生成词法分析器代码:  
