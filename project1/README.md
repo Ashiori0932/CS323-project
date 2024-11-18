@@ -1,13 +1,3 @@
-<!--
- * @Github: https://github.com/Certseeds/CS323_Compilers_2020F
- * @Organization: SUSTech
- * @Author: nanoseeds
- * @Date: 2020-09-17 11:48:24
- * @LastEditors: nanoseeds
- * @LastEditTime: 2020-10-03 20:22:40
- * @License: CC-BY-NC-SA_V4_0 or any later version 
- -->
- 
 # Project 1-词法分析与语法分析
 
 ## test result
@@ -20,9 +10,17 @@
 |-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|
 | F   | T   | F   | T   | F   | T   | T   | F   | F   | F   | F   | F   | F   |
 
+## test method
+第一阶段测试基本指令：
+生成可执行文件splc:
+make 
+
+测试parser:
+echo "tested codes" | ./splc 
+**or** ./splc < test/test02.spl
+**or** ./splc < phase1/test_1_r01.spl
 
 
-## 按照 [样例仓库](https://github.com/Certseeds/CS323_Compilers_2020F/tree/master) 的框架，项目运行方法：
 生成词法分析器代码:  
 `flex lex.l`  
 生成语法分析器代码：  
