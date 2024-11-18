@@ -288,9 +288,10 @@ RC "}"
     // 忽略空白字符
 }
 
-. {
-    printf("Unrecognized character: %s\n", yytext);
-    has_error = 1;
+[^0-9a-zA-Z_'\\\(\)\[\]\{\}\;\,\+\-\*\/] {
+    has_error=1;
+    fprintf(stdout,"Error type A at Line %d: unknown lexeme %s\n",lines, yytext);
+    return ILLEGAL_TOKEN;
 }
 
 %%
