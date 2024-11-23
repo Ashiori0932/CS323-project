@@ -37,18 +37,27 @@ pos_digit [1-9]
 ID ({letter_})+({letter}|{digit}|_)*
 hex [0-9a-fA-F]
 
-INT_16 0[xX](0|[1-9a-fA-F]{hex}*)
-
-hexadecimal [+-]?(0x)({hex}+)
+hexadecimal [+-]?(0x)(0|[1-9a-fA-F]+)
 decimal [+-]?(0|{pos_digit}{digit}*)
+Invalid_char [G-Zg-z]
 
 INT {decimal}|{hexadecimal}
-FLOAT (([1-9]{digit}*)|0).(([1-9]{digit}*)|0)
+
+int_invalid_other ([0]+){pos_digit}+
+
+FLOAT [+-]?(0|{pos_digit}{digit}*)\.{digit}*
+
+float_invalid [+-]?([0]+){digit}*\.{digit}*
+
 CHAR '.'
-CHAR_16 \'\\(x|X){hex}+\'
+CHAR_16 \'\\(x|X){hex}{hex}\'
+
+char_too_many \'\\(x|X){hex}{hex}+\'
+
+char_other_invalid \'\\(x|X){hex}*{Invalid_char}{hex}*\'
+
 WRONG_ID ({INT}){ID}
 
-CHAR_16_illgeal_char '\\x([g-zG-Z]){hex}*'
 
 IF "if"
 ELSE "else"
@@ -58,6 +67,7 @@ EQ "=="
 NE "!="
 AND "&&"
 OR "||"
+NOT "!"
 
 
 PLUS "+" 
@@ -71,8 +81,7 @@ ASSIGN "="
 LT "<"
 LE "<="
 GT ">"
-GE ">="
-BITOP_NOT "!"      
+GE ">="    
 BITOP_XOR "^"       
 BITOP_AND "&"       
 BITOP_OR "\\|"     
@@ -202,10 +211,10 @@ RC "}"
     return OR;
 }
 
-{BITOP_NOT} {
+{NOT} {
     //printf("line %d: BITOP %s\n", lines, yytext);
-    yylval.node = new Node(Node_TYPE::TERMINAL, "BITOP_NOT");
-    return BITOP_NOT;
+    yylval.node = new Node(Node_TYPE::TERMINAL, "NOT");
+    return NOT;
 }
 
 {BITOP_XOR} {
@@ -245,29 +254,57 @@ RC "}"
     return ID;    // 以字母或下划线开头，视为有效
 }
 
-{INT} { yylval.node = new Node(std::atoi(yytext)); return INT;}
-
-{FLOAT} { yylval.node = new Node(Node_TYPE::FLOAT, yytext); return FLOAT;}
-
-{CHAR} { yylval.node = new Node(Node_TYPE::CHAR, yytext); return CHAR;}
-
-{CHAR_16} { yylval.node = new Node(Node_TYPE::CHAR, yytext); return CHAR;}
-
-{INT_16} {
-    yylval.node = new Node(static_cast<int>(strtol(yytext,nullptr,0)));
+{INT} { yylval.node = new Node(std::atoi(yytext));
+    //printf("get int_16 %s\n",yytext);
     return INT;
 }
 
-{CHAR_16_illgeal_char} {
+{int_invalid_other} {
     has_error=1;
-    fprintf(stdout,"Error type A at Line %d: unknown lexeme %s\n",lines, yytext);
+    printf("Error type A at Line %d: unknown lexeme %s\n", lines, yytext);
+    return ILLEGAL_TOKEN;
+}
+
+{FLOAT} { 
+    yylval.node = new Node(Node_TYPE::FLOAT, yytext);
+    //printf("get float %s\n", yytext);
+    return FLOAT;
+}
+
+{float_invalid} {
+    has_error=1;
+    printf("Error type A at Line %d: unknown lexeme %s \n", lines, yytext);
+    return ILLEGAL_TOKEN;
+}
+
+
+{CHAR} { yylval.node = new Node(Node_TYPE::CHAR, yytext); 
+    // printf("get char %s\n", yytext);
+    return CHAR;
+}
+
+{CHAR_16} { yylval.node = new Node(Node_TYPE::CHAR, yytext);
+    //printf("get char %s\n", yytext);
+    return CHAR;
+}
+
+{char_too_many} {
+    has_error=1;
+    printf("Error type A at Line %d: unknown lexeme %s\n", lines, yytext);
+    return ILLEGAL_TOKEN;
+}
+
+{char_other_invalid} {
+    has_error=1;
+    printf("Error type A at Line %d: unknown lexeme %s\n", lines, yytext);
     return ILLEGAL_TOKEN;
 }
 
 {WRONG_ID} {
     // handle identifier mistake
-    printf("line %d: ID ERROR occur: %s\n", lines, yytext);
+    printf("Error Type A at Line %d: unknown lexeme %s\n", lines, yytext);
     has_error = 1;
+    return ILLEGAL_TOKEN;
 }
 
 
@@ -290,7 +327,7 @@ RC "}"
 
 [^0-9a-zA-Z_'\\\(\)\[\]\{\}\;\,\+\-\*\/] {
     has_error=1;
-    fprintf(stdout,"Error type A at Line %d: unknown lexeme %s\n",lines, yytext);
+    printf("Error type A at Line %d: unknown lexeme %s\n",lines, yytext);
     return ILLEGAL_TOKEN;
 }
 

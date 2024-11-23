@@ -1,17 +1,8 @@
-int test_spl()
-//{
-    //int i = 0, j = 1;
-    float i = 1;
-    char ss_a = 1, float s = 0;
-    int 1s = 0;
-    char s1 = 0x01;
-    float ss = 1.20;
-    int sa = _2, float st = 2.0x;
-    int s = 0;
-    char ss = '\x85';
-    int a = 1 + 2;
-    float b = 1.0 + 4.0;
-}  
+//int main(){
+
+    int e=2+3/2-2*2;
+    int f=(2+3/(2-2))*2;  
+//}
 
 
 /*
