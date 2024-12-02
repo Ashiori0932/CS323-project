@@ -4,15 +4,20 @@ import java.io.*;
 
 import SPL.splLexer;
 import SPL.splParser;
+import SPL.SemanticAnalyzer;
 
 public class spltest {
     public static void main(String[] args) throws IOException {
-        InputStream is = new FileInputStream("./phase1/test_1_r02.spl"); // 输入文件
+        InputStream is = new FileInputStream("./test/test_t3.spl"); // 输入文件
         ANTLRInputStream input = new ANTLRInputStream(is);
         splLexer lexer = new splLexer(input);
         CommonTokenStream tokens = new CommonTokenStream(lexer);
         splParser parser = new splParser(tokens);
         ParseTree tree = parser.program(); // program 是起始规则
+
+        SemanticAnalyzer semanticAnalyzer = new SemanticAnalyzer(); // 自定义 Listener
+        ParseTreeWalker walker = new ParseTreeWalker();
+        walker.walk(semanticAnalyzer, tree);
 
         // 转换成缩进格式的树
         String formattedTree = formatParseTree(tree, parser, 0);
