@@ -4,53 +4,347 @@ import java.util.HashMap;
 import java.util.Map;
 import SPL.splBaseListener;
 import SPL.splParser;
+import java.util.List;
 
 
 
 public class SemanticAnalyzer extends splBaseListener {
+    // 对应symbol_id -> type,如果是结构体的定义按照这个结构symbol_id -> struct_name(symbolTable.put(varName_list, struct_name))
     private Map<String, String> symbolTable = new HashMap<>();
+    private Map<String, String> FunctionTable = new HashMap<>();
+    // 存储结构体名字和对应的符号表
+    private Map<String, Map<String, String>> structSymbolTables = new HashMap<>();
+
 
 @Override
-public void exitVarDec(splParser.VarDecContext ctx) {
+public void exitParamDec(splParser.ParamDecContext ctx) {
     // 如果是普通变量声明
-    if (ctx.ID() != null) {
-        String varName = ctx.ID().getText();
+    if (ctx.specifier().TYPE() != null) {
+        String type = ctx.specifier().TYPE().getText();
+        String varName = ctx.varDec().ID().getText();
         // 检查变量是否已在符号表中
         if (symbolTable.containsKey(varName)) {
-            System.err.println("Error: Variable " + varName + " is already declared.");
+            System.err.println("Error type 3: Variable " + varName + " is already declared in the same parameter scope.");
         } else {
-            // System.out.println(varName+" variable");
-            symbolTable.put(varName, "variable");
+            //System.out.println("get varible" + varName + " in para dec "+ type);
+            // 这里对应的应该写type和value
+            symbolTable.put(varName, type);
+            
         }
     }
-    // 如果是数组声明
-    // else if (ctx.varDec() != null) {
-    //     splParser.VarDecContext ctxTemp = ctx;
-    //     String arraySizeString = "";
-    //     while(ctxTemp.ID()==null){
-    //         if (ctxTemp.LB() != null && ctxTemp.RB() != null) {
-    //             String arraySize = ctxTemp.INT().getText();
-    //             try {
-    //                 int size = Integer.parseInt(arraySize);
-    //                 if (size <= 0) {
-    //                     System.err.println("Error: Array must have a positive size.");
-    //                 } else {
-    //                     arraySizeString = arraySizeString + "[" + size +"]";
-    //                 }
-    //             } catch (NumberFormatException e) {
-    //                 System.err.println("Error: Array size is not a valid integer.");
-    //             }
-    //         }
-    //         ctxTemp = ctxTemp.varDec();
-    //     }
-    //     String varName = ctxTemp.ID().getText();
-    //     if (symbolTable.containsKey(varName)) {
-    //         System.out.println(varName+" Array" + arraySizeString);
-    //         System.err.println("Error: Variable " + varName + " is already declared.");
-    //     } else {
-    //         symbolTable.put(varName, "Array" + arraySizeString);
-    //     }
-    // }
+    else{
+        String varName = ctx.varDec().ID().getText();
+        System.err.println("Error: Variable " + varName + "needs a type");
+        if (varName == null){
+            System.err.println("Error: Missing varible name");
+        }
+    }
 }
+
+@Override
+public void exitDef(splParser.DefContext ctx) {
+    // 如果是普通变量声明
+    if (ctx.specifier().TYPE() != null) {
+        String type = ctx.specifier().TYPE().getText();
+        //System.out.println(type + "type is");
+        // String varName = ctx.decList().dec().varDec().ID().getText();
+        splParser.DecListContext temp = ctx.decList();
+        // 如果能够继续往下寻找declist
+        while (temp != null){
+            String varName_list = temp.dec().varDec().ID().getText();
+            if (symbolTable.containsKey(varName_list)) {
+                System.err.println("Error type 3: Variable " + varName_list + " is already declared in the same scope.");
+            } else {
+                // System.out.println("get varible" + varName_list + " in def list"+ type);
+                // 这里对应的应该写type和value
+                symbolTable.put(varName_list, type);    
+            }
+            temp = temp.decList();
+        }
+        // // 检查变量是否已在符号表中
+        // if (symbolTable.containsKey(varName)) {
+        //     System.err.println("Error: Variable " + varName + " is already declared.");
+        // } else {
+        //     System.out.println("get varible" + varName + " in def list"+ type);
+        //     // 这里对应的应该写type和value
+        //     symbolTable.put(varName, type);    
+        // }
+    }
+    // 如果他是一个结构体的定义(实例化)
+    else if(ctx.specifier() != null && ctx.specifier().structSpecifier() != null){
+        String struct_name = ctx.specifier().structSpecifier().ID().getText();
+        splParser.DecListContext temp = ctx.decList();
+        // 如果能够继续往下寻找declist
+        while (temp != null){
+            String varName_list = temp.dec().varDec().ID().getText();
+            if (symbolTable.containsKey(varName_list)) {
+                System.err.println("Error : Variable " + varName_list + " is already declared in the same scope.");
+            } else {
+                // System.out.println("get varible" + varName_list + " in def list"+ type);
+                // 这里对应的应该写type和value
+                symbolTable.put(varName_list, struct_name); 
+                //System.out.println("successfully put " + varName_list + " " + struct_name);
+            }
+            temp = temp.decList();
+        }
+    }
+    else{
+        String varName = ctx.decList().dec().varDec().ID().getText();
+        System.err.println("Error: Variable " + varName + "needs a type");
+        if (varName == null){
+            System.err.println("Error: Missing varible name");
+        }
+    }
+}
+
+
+// // function declaration
+// @Override
+// public void exitFunDec(splParser.FunDecContext ctx) {
+//     // 如果是普通变量声明
+//     if (ctx.ID() != null) {
+//         String varName = ctx.ID().getText();
+//         // 检查变量是否已在符号表中
+//         if (FunctionTable.containsKey(varName)) {
+//             System.err.println("Error: Function " + varName + " is redefined.");
+//         } else {
+//             // System.out.println(varName+" variable");
+//             FunctionTable.put(varName, "function");
+//         }
+//     }
+// }
+
+// 外部声明
+@Override
+public void exitExtDef(splParser.ExtDefContext ctx) {
+    // 如果是普通变量声明
+    if (ctx.specifier().TYPE() != null) {
+        String type = ctx.specifier().TYPE().getText();
+        splParser.StmtListContext temp = ctx.compSt().stmtList();
+        // System.out.println("type is"+ type);
+        if (temp != null){
+            // System.out.println("IN return1111");
+            if(temp.stmt() != null && temp.stmt().RETURN() != null){
+                // 如果返回的是一个ID
+                // System.out.println("IN return1");
+                if (temp.stmt().exp().ID() != null && temp.stmt().exp().LP() == null){
+                    // System.out.println("IN return ID");
+                    String stmtlist_name = temp.stmt().exp().ID().getText();
+                    String return_type = symbolTable.get(stmtlist_name);
+                    // System.out.println("IN return" + stmtlist_name);
+                    if(!return_type.equals(type)){
+                        System.err.println("Error type 8: " + stmtlist_name + " " + return_type + " is not match");
+                    }
+                }
+                // 如果返回的就是一个函数
+                else if(temp.stmt().exp().LP() != null){
+                    //System.out.println("IN return function");
+                    String fun_Name = temp.stmt().exp().ID().getText();
+                    String fun_type = FunctionTable.get(fun_Name);
+                    // System.out.println("IN return function" + fun_Name + " " + fun_type);
+                    if(!fun_type.equals(type)){
+                        System.err.println("Error type 8: " + fun_Name + " return type" + fun_type + " is not match");
+                    }
+                }
+                else{
+                    // System.out.println("IN return");
+                    //如果返回的是整数类型...
+                    if(temp.stmt().exp().INT() != null){
+                        if(!type.equals("int")){
+                            // System.out.println("这个函数的type是" + type);
+                            System.err.println("Error type 8: return type is not match");
+                        }
+                    }
+                    else if(temp.stmt().exp().FLOAT() != null){
+                        if(!type.equals("float")){
+                            System.err.println("Error type 8: return type is not match");
+                        }
+                    }
+                    else{
+                        if(!type.equals("chat")){
+                            System.err.println("Error type 8: return type is not match");
+                        }
+                    }
+                }
+            }
+        }
+
+        // 多个stmt 对return的判断
+        List<splParser.StmtContext> temp_list = temp.stmt().stmt();
+        if(!temp_list.isEmpty()){
+            //System.out.println("不是空的");
+            // System.out.println("length is " + temp_list.size());
+            //遍历每一个stmt
+            for(int i = 1;i<temp_list.size();i++){
+                splParser.StmtContext temmp = temp_list.get(i).compSt().stmtList().stmt();
+                if (temmp.exp().ID() != null && temmp.exp().LP() == null){
+                    // System.out.println("IN return ID");
+                    String stmtlist_name = temmp.exp().ID().getText();
+                    String return_type = symbolTable.get(stmtlist_name);
+                    // System.out.println("IN return" + stmtlist_name);
+                    if(!return_type.equals(type)){
+                        System.err.println("Error type 8: " + stmtlist_name + " " + return_type + " is not match");
+                    }
+                }
+                // 如果返回的就是一个函数
+                else if(temmp.exp().LP() != null){
+                    // System.out.println("IN return function");
+                    String fun_Name = temmp.exp().ID().getText();
+                    String fun_type = FunctionTable.get(fun_Name);
+                    // System.out.println("IN return function" + fun_Name + " " + fun_type);
+                    if(!fun_type.equals(type)){
+                        System.err.println("Error type 8: " + fun_Name + " return type" + fun_type + " is not match");
+                    }
+                }
+                else{
+                    // System.out.println("IN return");
+                    //如果返回的是整数类型...
+                    if(temmp.exp().INT() != null){
+                        if(!type.equals("int")){
+                            // System.out.println("这个函数的type是" + type);
+                            System.err.println("Error type 8: return type is not match");
+                        }
+                    }
+                    else if(temmp.exp().FLOAT() != null){
+                        if(!type.equals("float")){
+                            System.err.println("Error type 8: return type is not match");
+                        }
+                    }
+                    else{
+                        if(!type.equals("chat")){
+                            System.err.println("Error type 8: return type is not match");
+                        }
+                    }
+                }
+            }
+
+        }
+
+        String funName = ctx.funDec().ID().getText();
+        // String varName = ctx.ID().getText();
+        // 检查变量是否已在符号表中
+        if (FunctionTable.containsKey(funName)) {
+            System.err.println("Error type 4: Function " + funName + " is redefined.");
+        } else {
+            // System.out.println(varName+" variable");
+            FunctionTable.put(funName, type);
+            // System.out.println("find!" + funName + " " + type);
+        }
+        //System.out.println("find type!" + type);
+    }
+    symbolTable.clear();
+}
+
+@Override
+public void exitSpecifier(splParser.SpecifierContext ctx) {
+    //如果他是一个结构体 而且是处在定义阶段
+    if(ctx.structSpecifier() != null && ctx.structSpecifier().LC()!=null){
+        // 如果没有定义这个结构体就把他的id加入到结构体名字的map中
+        String struct_name = ctx.structSpecifier().ID().getText();
+        //System.out.println("into the struct creation" + struct_name);
+        if(!structSymbolTables.containsKey(struct_name)){
+            structSymbolTables.put(struct_name, new HashMap<>());
+            // System.out.println("This struct " + struct_name +" is successfully added");
+            splParser.DefListContext temp = ctx.structSpecifier().defList();
+            Map<String, String> correspond_symbolTable = structSymbolTables.get(struct_name);
+            // 如果能够继续往下寻找declist
+            while (temp != null){
+                splParser.DefContext temp_def = temp.def();
+                if(temp_def != null){
+                    // 如果是普通的定义
+                    if(temp_def.specifier().TYPE()!=null){
+                        String type = temp_def.specifier().TYPE().getText();
+                        splParser.DecListContext temp_declist = temp_def.decList();
+                        while(temp_declist != null){
+                            String var_Name = temp_declist.dec().varDec().ID().getText();
+                            // 如果不在结构体这个变量表里面，那么就把它加进去。
+                            if(!correspond_symbolTable.containsKey(var_Name)){
+                                //System.out.println(var_Name + "is successfully added to map " + struct_name);
+                                correspond_symbolTable.put(var_Name, type);
+                            }
+                            else{
+                                //这里不需要报错，因为在def时候已经报错了
+                                // System.err.println("Error type 3: varible "+var_Name+ " is already defined in the same scope!");
+                            }
+                            temp_declist = temp_declist.decList();
+                        }
+                    }
+                    // 如果结构体里面还有结构体
+                    else{
+                        String sub_struct_name = temp_def.specifier().structSpecifier().ID().getText();
+                        //System.out.println("in the struct" + sub_struct_name);
+                        // 如果结构体表里面有这个结构体,那么把这个结构体按照既定的格式加到大结构体的符号表中
+                        String name = temp_def.decList().dec().varDec().ID().getText();
+                        //System.out.println("in the struct" + name);
+                        if(structSymbolTables.containsKey(sub_struct_name)){
+                            correspond_symbolTable.put(name, sub_struct_name );
+                        }
+                    }
+                }
+                temp = temp.defList();
+            }
+        }
+        else{
+            System.err.println("Error type 15: This struct "+ struct_name + " is redefined as same structure type " );
+        }
+    }
+}
+
+
+@Override
+public void exitExp(splParser.ExpContext ctx) {
+    if (ctx.ID() != null) {
+        // 函数检查 (type 2)
+        if(ctx.LP() != null) {
+            String fun_Name = ctx.ID().getText();
+            //System.out.println("in a function judge");
+            if(!FunctionTable.containsKey(fun_Name)){
+                System.err.println("Error type 2: "+fun_Name +" is invoked without a definition");
+            }
+        }
+        // 普通检查（type 1）
+        else{
+            String var_Name = ctx.ID().getText();
+            // 检查结构体变量是否已经定义
+            if(ctx.DOT() != null){
+                // System.out.println(var_Name + "111");
+                splParser.ExpContext firstExp = ctx.exp().get(0);
+                if(firstExp.ID() != null) {
+                    String struct_name = firstExp.ID().getText();
+                    //System.out.println("struct name is" + struct_name);
+                    if(!symbolTable.containsKey(struct_name)){
+                        //System.err.println("Error type 14:" + struct_name + " is not defined yet in the stucture.");
+                    }
+                    else{
+                        // 找到这个结构体的真实type
+                        String struct_type = symbolTable.get(struct_name);
+                        // 找到这个结构体对应的符号表
+                        Map<String, String> correspond_symbolTable = structSymbolTables.get(struct_type);
+                        if(!correspond_symbolTable.containsKey(var_Name)){
+                            System.err.println("Error type 14:" + var_Name + " is not defined yet in the struct " + struct_name + " (accessing an undefined structure member)");
+                        }
+                    }
+                }
+            }
+            // 普通检查变量是否已经定义
+            else{
+                if (!symbolTable.containsKey(var_Name)) {
+                    System.err.println("Error type 1: " + var_Name + " is used before definition.");
+                }
+            }
+        }
+    }
+}
+
+// @Override
+// public void exitDec(splParser.DecContext ctx) {
+//     if (ctx.ID() != null) {
+//         String varName = ctx.ID().getText();
+//         // 检查变量是否已经定义
+//         if (!symbolTable.containsKey(varName) && !FunctionTable.containsKey(varName)) {
+//             System.err.println("Error: Variable " + varName + " is used before definition.");
+//         }
+//     }
+// }
 
 }

@@ -8,7 +8,7 @@ import SPL.SemanticAnalyzer;
 
 public class spltest {
     public static void main(String[] args) throws IOException {
-        InputStream is = new FileInputStream("./test/test_t3.spl"); // 输入文件
+        InputStream is = new FileInputStream("./phase2/test_2_r02.spl"); // 输入文件
         ANTLRInputStream input = new ANTLRInputStream(is);
         splLexer lexer = new splLexer(input);
         CommonTokenStream tokens = new CommonTokenStream(lexer);

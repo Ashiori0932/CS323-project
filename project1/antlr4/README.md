@@ -36,3 +36,14 @@ javac spltest.java && java spltest
 ```
 grun SPL.spl program -tree ./test/test03.spl
 ```
+
+## phase2 测试情况
+
+ 
+| r1  | r2  | r3  | r4  | r5  | r6  | r7  | r8  | r9  | r10 | r11 | r12 |
+|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|
+| T   | T   | T   | T   | F   | F   | F   | T   | F   | F   | F   | F   |
+
+| r13  | r14  | r15  |
+|------|------|------|
+| F    | F    | T    | 
