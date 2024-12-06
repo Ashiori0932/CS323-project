@@ -51,7 +51,11 @@ public void exitDef(splParser.DefContext ctx) {
         splParser.DecListContext temp = ctx.decList();
         // 如果能够继续往下寻找declist
         while (temp != null){
-            String varName_list = temp.dec().varDec().ID().getText();
+            splParser.VarDecContext temp_vardec = temp.dec().varDec();
+            while(temp_vardec.ID() == null){
+                temp_vardec = temp_vardec.varDec();
+            }
+            String varName_list = temp_vardec.ID().getText();
             if (symbolTable.containsKey(varName_list)) {
                 System.err.println("Error type 3: Variable " + varName_list + " is already declared in the same scope.");
             } else {
@@ -256,7 +260,11 @@ public void exitSpecifier(splParser.SpecifierContext ctx) {
                         String type = temp_def.specifier().TYPE().getText();
                         splParser.DecListContext temp_declist = temp_def.decList();
                         while(temp_declist != null){
-                            String var_Name = temp_declist.dec().varDec().ID().getText();
+                            splParser.VarDecContext temp_vardec = temp_declist.dec().varDec();
+                            while(temp_vardec.ID() == null){
+                                temp_vardec = temp_vardec.varDec();
+                            }
+                            String var_Name = temp_vardec.ID().getText();
                             // 如果不在结构体这个变量表里面，那么就把它加进去。
                             if(!correspond_symbolTable.containsKey(var_Name)){
                                 //System.out.println(var_Name + "is successfully added to map " + struct_name);
