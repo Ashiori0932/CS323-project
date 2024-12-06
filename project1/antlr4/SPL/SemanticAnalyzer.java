@@ -52,16 +52,22 @@ public void exitDef(splParser.DefContext ctx) {
         // 如果能够继续往下寻找declist
         while (temp != null){
             splParser.VarDecContext temp_vardec = temp.dec().varDec();
+            String arraySize = "";
             while(temp_vardec.ID() == null){
+                arraySize = "[" + temp_vardec.INT() + "]" + arraySize;
+                if(Integer.parseInt(temp_vardec.INT().getText())<=0){
+                    System.err.println("Error type 12: The dimension size must be greater than 0 when declaring an array.");
+                }
                 temp_vardec = temp_vardec.varDec();
             }
             String varName_list = temp_vardec.ID().getText();
+            // System.out.println(varName_list + " 's type: " + type+arraySize);
             if (symbolTable.containsKey(varName_list)) {
                 System.err.println("Error type 3: Variable " + varName_list + " is already declared in the same scope.");
             } else {
                 // System.out.println("get varible" + varName_list + " in def list"+ type);
                 // 这里对应的应该写type和value
-                symbolTable.put(varName_list, type);    
+                symbolTable.put(varName_list, type + arraySize);    
             }
             temp = temp.decList();
         }
@@ -259,16 +265,21 @@ public void exitSpecifier(splParser.SpecifierContext ctx) {
                     if(temp_def.specifier().TYPE()!=null){
                         String type = temp_def.specifier().TYPE().getText();
                         splParser.DecListContext temp_declist = temp_def.decList();
+                        String arraySize = "";
                         while(temp_declist != null){
                             splParser.VarDecContext temp_vardec = temp_declist.dec().varDec();
                             while(temp_vardec.ID() == null){
+                                arraySize = "["+ temp_vardec.INT() +"]"+arraySize;
+                                // 声明是数组维度大小必须大于0，在def时已经报错
                                 temp_vardec = temp_vardec.varDec();
                             }
                             String var_Name = temp_vardec.ID().getText();
+                            // System.out.println(var_Name + " 's type: " + type+arraySize);
                             // 如果不在结构体这个变量表里面，那么就把它加进去。
                             if(!correspond_symbolTable.containsKey(var_Name)){
                                 //System.out.println(var_Name + "is successfully added to map " + struct_name);
-                                correspond_symbolTable.put(var_Name, type);
+                                //数组存的type格式如：int[10][100][10000]
+                                correspond_symbolTable.put(var_Name, type+arraySize);
                             }
                             else{
                                 //这里不需要报错，因为在def时候已经报错了
@@ -343,6 +354,28 @@ public void exitExp(splParser.ExpContext ctx) {
         }
     }
 }
+
+
+// @Override
+// public void exitVarDec(splParser.VarDecContext ctx) {
+//     splParser.VarDecContext temp = ctx;
+//     String arraySize = "";
+//     while (temp.ID() == null) {
+//         arraySize = arraySize + "["+ temp.INT() +"]"
+//         temp = temp.varDec();
+//         // System.out.println("exitVarDec");
+//         // String varName = ctx.ID().getText();
+//         // // 检查变量是否已经定义
+//         // if (!symbolTable.containsKey(varName) && !FunctionTable.containsKey(varName)) {
+//         //     System.err.println("Error: Variable " + varName + " is used before definition.");
+//         // }
+//     }
+//     String varName = temp.ID().getText();
+//     if (!symbolTable.containsKey(varName) && !FunctionTable.containsKey(varName)) {
+//         System.err.println("Error: Variable " + varName + " is used before definition.");
+//     }
+// }
+
 
 // @Override
 // public void exitDec(splParser.DecContext ctx) {
