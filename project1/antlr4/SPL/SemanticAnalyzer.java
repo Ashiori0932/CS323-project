@@ -86,13 +86,22 @@ public void exitDef(splParser.DefContext ctx) {
         splParser.DecListContext temp = ctx.decList();
         // 如果能够继续往下寻找declist
         while (temp != null){
-            String varName_list = temp.dec().varDec().ID().getText();
+            splParser.VarDecContext temp_vardec = temp.dec().varDec();
+            String arraySize = "";
+            while(temp_vardec.ID() == null){
+                arraySize = "[" + temp_vardec.INT() + "]" + arraySize;
+                if(Integer.parseInt(temp_vardec.INT().getText())<=0){
+                    System.err.println("Error type 12: The dimension size must be greater than 0 when declaring an array.");
+                }
+                temp_vardec = temp_vardec.varDec();
+            }
+            String varName_list = temp_vardec.ID().getText();
             if (symbolTable.containsKey(varName_list)) {
-                System.err.println("Error : Variable " + varName_list + " is already declared in the same scope.");
+                System.err.println("Error type 3: Variable " + varName_list + " is already declared in the same scope.");
             } else {
                 // System.out.println("get varible" + varName_list + " in def list"+ type);
                 // 这里对应的应该写type和value
-                symbolTable.put(varName_list, struct_name); 
+                symbolTable.put(varName_list, struct_name + arraySize); 
                 //System.out.println("successfully put " + varName_list + " " + struct_name);
             }
             temp = temp.decList();
