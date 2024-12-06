@@ -156,6 +156,10 @@ exp         :
             | exp MINUS exp
             | exp PLUS {System.err.println("Error type B at Line " + $PLUS.line + ": Missing Exp after +");}
             | exp MINUS {System.err.println("Error type B at Line " + $MINUS.line + ": Missing Exp after -");}
+            | exp LB exp RB
+            | exp LB exp {
+                                           System.err.println("Error type B at Line " + $LB.line + ": Missing closing bracket \']\'");
+                                       }
             | exp ASSIGN exp
             | exp ASSIGN {System.err.println("Error type B at Line " + $ASSIGN.getLine() + ": Missing value");}
             | exp NE exp
@@ -175,10 +179,6 @@ exp         :
                                                                         }
                                        }
             | ID LP RP
-            | exp LB exp RB
-            | exp LB exp {
-                                           System.err.println("Error type B at Line " + $LB.line + ": Missing closing bracket \']\'");
-                                       }
             | exp LB {
                                            System.err.println("Error type B at Line " + $LB.line + ": Missing closing bracket \']\'");
                                        }                                       

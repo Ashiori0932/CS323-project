@@ -353,7 +353,102 @@ public void exitExp(splParser.ExpContext ctx) {
             }
         }
     }
+
+
+    if (ctx.LB() != null && ctx.RB() != null) {
+        // 获取数组索引的表达式
+        int depth = 1;
+        splParser.ExpContext idExp = ctx.exp(0); // 第一个子表达式是数组标识符
+        splParser.ExpContext temp_exp = idExp;
+        // if(idExp.ID()!=null){
+        //     String varType = symbolTable.get(idExp.ID()); // 从符号表中获取变量类型
+        // }
+        while(temp_exp.ID()==null){
+            depth++;
+            if(temp_exp.exp(0)==null){
+                //实际上在语法检查后不会出现这种情况 只是写的时候为了防止可能的死循环
+                System.err.println("Error type 10 : Applying indexing operator on non-array type variables");
+                break;
+            }
+            // System.out.println(depth);
+            temp_exp = temp_exp.exp(0);
+        }
+        if(temp_exp.ID()!=null){
+            
+            String varType = symbolTable.get(temp_exp.ID().getText()); // 从符号表中获取变量类型
+            // System.out.println(temp_exp.ID().getText() + " " + varType);
+            for (int i = 0; i < varType.length(); i++) {
+                if (varType.charAt(i) == '[') {
+                    depth--;
+                }
+            }
+            // System.out.println(depth);
+            if(depth>0){
+                System.err.println("Error type 10 : Applying indexing operator on non-array type variables");
+            }
+        }
+
+        splParser.ExpContext indexExp = ctx.exp(1); // 第二个子表达式是数组索引
+        
+        // 判断索引表达式的类型是否是整数
+        if (indexExp != null && !isIntegerType(indexExp)) {
+            System.err.println("Error type 12 : Array index is not an integer");
+        }
+    }
 }
+
+
+
+// 判断给定表达式是否是整数类型
+private boolean isIntegerType(splParser.ExpContext expCtx) {
+    // 简单的类型判断，可以根据上下文分析扩展
+    if (expCtx.INT() != null) {// 索引是一个整数字面值
+        return true; 
+    }else if (expCtx.ID() != null && expCtx.LP() == null && expCtx.RP() == null) {// 索引是一个变量
+        String varName = expCtx.ID().getText();
+        String varType = symbolTable.get(varName); // 从符号表中获取变量类型
+        return "int".equals(varType); 
+    }else if (expCtx.LB() != null && expCtx.RB() != null) {// 索引是一个数组
+        splParser.ExpContext idExp = expCtx.exp(0); // 索引部分
+        splParser.ExpContext temp_exp = idExp;
+        while(temp_exp.ID()==null){
+            if(temp_exp.exp(0)==null){
+                //实际上在语法检查后不会出现这种情况 只是写的时候为了防止可能的死循环
+                System.err.println("Error type 10 : Applying indexing operator on non-array type variables");
+                break;
+            }
+            temp_exp = temp_exp.exp(0);
+        }
+        if(temp_exp.ID()!=null){
+            String varType = symbolTable.get(temp_exp.ID().getText()); // 从符号表中获取变量类型
+            if(varType.startsWith("int")){
+                return true;
+            }else{
+                return false;
+            }
+        }
+    }else if (expCtx.ID() != null && expCtx.LP() != null && expCtx.RP() != null) { // 索引是一个调用
+        String funcName = expCtx.ID().getText();
+        // System.out.println("?");
+        if (FunctionTable.containsKey(funcName)) {
+            String returnType = FunctionTable.get(funcName); // 从函数表中获取返回值类型
+            // System.out.println(returnType);
+            return "int".equals(returnType); // 如果返回值是 "int"，则为整数类型
+        }
+    }else if (expCtx.exp().size() > 0) { // 索引是一个数学表达式
+        boolean isAllInteger = true;
+        for (splParser.ExpContext subExp : expCtx.exp()) {
+            if (!isIntegerType(subExp)) {
+                isAllInteger = false;
+                break;
+            }
+        }
+        // 如果所有子表达式都是整数类型，数学表达式也是整数类型
+        return isAllInteger;
+    }
+    return false; // 其他情况默认为非整数类型
+}
+
 
 
 // @Override
