@@ -428,13 +428,33 @@ public void exitExp(splParser.ExpContext ctx) {
 }
 
 private String findInStruct(String id_name, splParser.ExpContext exp_ctx) {
-    if(exp_ctx.exp(0)==null || exp_ctx.DOT() == null){
-        System.err.println("Error type 13: accessing members of a non-structure variable.");
-    }
-    splParser.ExpContext father_exp = exp_ctx.exp(0);
-    String father_name = father_exp.ID().getText();
-    // System.out.println(father_name+" "+id_name);
     String struct_name = "";
+    splParser.ExpContext father_exp;
+    String father_name;
+    if(exp_ctx.exp(0)==null || exp_ctx.DOT() == null){
+        // splParser.ExpContext idExp = exp_Ctx.exp(0); // id部分
+        // splParser.ExpContext temp_exp = idExp;
+        // while(temp_exp.ID()==null){
+        //     if(temp_exp.exp(0)==null){
+        //         //实际上在语法检查后不会出现这种情况 只是写的时候为了防止可能的死循环
+        //         System.err.println("Error type 10 : Applying indexing operator on non-array type variables");
+        //         break;
+        //     }
+        //     temp_exp = temp_exp.exp(0);
+        // }
+        // if(temp_exp.ID()!=null){
+        //     String varType = symbolTable.get(temp_exp.ID().getText()); // 从符号表中获取变量类型
+        //     struct_name = input.replaceAll("[^a-zA-Z]", ""); 
+        // }
+        System.err.println("Error type 13: accessing members of a non-structure variable.");
+        return "";
+    }else{
+        father_exp = exp_ctx.exp(0);
+        father_name = father_exp.ID().getText();
+    }
+
+    // System.out.println(father_name+" "+id_name);
+    
     if(!symbolTable.containsKey(father_name)){
         struct_name = findInStruct(father_name, father_exp);
     }else{
@@ -466,7 +486,7 @@ private boolean isIntegerType(splParser.ExpContext expCtx) {
         String varType = symbolTable.get(varName); // 从符号表中获取变量类型
         return "int".equals(varType); 
     }else if (expCtx.LB() != null && expCtx.RB() != null) {// 索引是一个数组
-        splParser.ExpContext idExp = expCtx.exp(0); // 索引部分
+        splParser.ExpContext idExp = expCtx.exp(0); // id部分
         splParser.ExpContext temp_exp = idExp;
         while(temp_exp.ID()==null){
             if(temp_exp.exp(0)==null){
