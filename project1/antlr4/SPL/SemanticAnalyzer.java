@@ -336,22 +336,43 @@ public void exitExp(splParser.ExpContext ctx) {
             // 检查结构体变量是否已经定义
             if(ctx.DOT() != null){
                 // System.out.println(var_Name + "111");
-                splParser.ExpContext firstExp = ctx.exp().get(0);
-                if(firstExp.ID() != null) {
-                    String struct_name = firstExp.ID().getText();
-                    //System.out.println("struct name is" + struct_name);
-                    if(!symbolTable.containsKey(struct_name)){
-                        //System.err.println("Error type 14:" + struct_name + " is not defined yet in the stucture.");
+                // splParser.ExpContext firstExp = ctx.exp().get(0);
+                if(ctx.ID() != null) {
+                    String id_name = ctx.ID().getText();
+                    // System.out.println("id name is " + id_name);
+                    splParser.ExpContext temp = ctx;
+                    String temp_name = id_name;
+                    if(!symbolTable.containsKey(id_name)){
+                        findInStruct(id_name, ctx);
                     }
-                    else{
-                        // 找到这个结构体的真实type
-                        String struct_type = symbolTable.get(struct_name);
-                        // 找到这个结构体对应的符号表
-                        Map<String, String> correspond_symbolTable = structSymbolTables.get(struct_type);
-                        if(!correspond_symbolTable.containsKey(var_Name)){
-                            System.err.println("Error type 14:" + var_Name + " is not defined yet in the struct " + struct_name + " (accessing an undefined structure member)");
-                        }
-                    }
+
+                    // while(!symbolTable.containsKey(temp_name)){
+                    //     if(temp.exp(0)==null || temp.DOT() == null){
+                    //         System.err.println("Error type 13: accessing members of a non-structure variable.");
+                    //         break;
+                    //     }
+                    //     temp = temp.exp(0);
+                    //     String father_name = temp.ID().getText();
+                    //     System.out.println(father_name+" "+temp_name);
+                    //     Map<String, String> correspond_symbolTable = structSymbolTables.get(symbolTable.get(father_name));
+                    //     if(!correspond_symbolTable.containsKey(temp_name)){
+                    //         System.err.println("Error type 13: accessing members of a non-structure variable.");
+                    //         break;
+                    //     }
+                    //     temp_name = father_name;
+                    // }
+                    // if(!symbolTable.containsKey(struct_name)){
+                    //     //System.err.println("Error type 14:" + struct_name + " is not defined yet in the stucture.");
+                    // }
+                    // else{
+                    //     // 找到这个结构体的真实type
+                    //     String struct_type = symbolTable.get(struct_name);
+                    //     // 找到这个结构体对应的符号表
+                    //     Map<String, String> correspond_symbolTable = structSymbolTables.get(struct_type);
+                    //     if(!correspond_symbolTable.containsKey(var_Name)){
+                    //         System.err.println("Error type 14:" + var_Name + " is not defined yet in the struct " + struct_name + " (accessing an undefined structure member)");
+                    //     }
+                    // }
                 }
             }
             // 普通检查变量是否已经定义
@@ -406,6 +427,33 @@ public void exitExp(splParser.ExpContext ctx) {
     }
 }
 
+private String findInStruct(String id_name, splParser.ExpContext exp_ctx) {
+    if(exp_ctx.exp(0)==null || exp_ctx.DOT() == null){
+        System.err.println("Error type 13: accessing members of a non-structure variable.");
+    }
+    splParser.ExpContext father_exp = exp_ctx.exp(0);
+    String father_name = father_exp.ID().getText();
+    // System.out.println(father_name+" "+id_name);
+    String struct_name = "";
+    if(!symbolTable.containsKey(father_name)){
+        struct_name = findInStruct(father_name, father_exp);
+    }else{
+        struct_name = symbolTable.get(father_name);
+    }
+    Map<String, String> correspond_symbolTable = structSymbolTables.get(struct_name);
+    if(struct_name.equals("")){
+        return "";
+    }
+    if(correspond_symbolTable == null){
+        System.err.println("Error type 13: accessing members of a non-structure variable "+father_name+".");
+        return "";
+    }else if(!correspond_symbolTable.containsKey(id_name)){
+        System.err.println("Error type 14: accessing an undefined structure member.");
+        return "";
+    }else{
+        return correspond_symbolTable.get(id_name);
+    }
+}
 
 
 // 判断给定表达式是否是整数类型

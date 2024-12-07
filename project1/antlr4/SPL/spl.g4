@@ -160,6 +160,8 @@ exp         :
             | exp LB exp {
                                            System.err.println("Error type B at Line " + $LB.line + ": Missing closing bracket \']\'");
                                        }
+            | exp DOT ID
+            | exp DOT {  System.err.println("Error type B at Line " + $DOT.line + ": Missing field name");}
             | exp ASSIGN exp
             | exp ASSIGN {System.err.println("Error type B at Line " + $ASSIGN.getLine() + ": Missing value");}
             | exp NE exp
@@ -182,8 +184,6 @@ exp         :
             | exp LB {
                                            System.err.println("Error type B at Line " + $LB.line + ": Missing closing bracket \']\'");
                                        }                                       
-            | exp DOT ID
-            | exp DOT {  System.err.println("Error type B at Line " + $DOT.line + ": Missing field name");}
             | INT
             | FLOAT
             | CHAR
