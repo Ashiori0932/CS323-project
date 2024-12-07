@@ -327,7 +327,11 @@ public void exitExp(splParser.ExpContext ctx) {
             String fun_Name = ctx.ID().getText();
             //System.out.println("in a function judge");
             if(!FunctionTable.containsKey(fun_Name)){
-                System.err.println("Error type 2: "+fun_Name +" is invoked without a definition");
+                if(symbolTable.containsKey(fun_Name)){
+                    System.err.println("Error type 11: Applying function invocation operator on non-function name " + fun_Name + ".");
+                }else{
+                    System.err.println("Error type 2: "+fun_Name +" is invoked without a definition");
+                }
             }
         }
         // 普通检查（type 1）
