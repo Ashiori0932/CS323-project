@@ -409,33 +409,32 @@ public void exitExp(splParser.ExpContext ctx) {
                 System.err.println("Error type 5: unmatched type for on both sides of assignment for " + ctx.getText());
                 expTypesMap.put(ctx, "wrong exp");
             }
-            if (ctx.exp(0).ID() == null) {
-                //TODO
+            if ((ctx.exp(0).ID() == null && ctx.exp(0).LB() == null) ||
+                    (ctx.exp(0).ID() != null && ctx.exp(0).LP() != null)) {
                 System.err.println("Error type 6: rvalue appears on the left-side of assignment");
                 expTypesMap.put(ctx, "wrong exp");
             }
         } else if (ctx.exp(1) != null) {
             // +, -, *, /, !=, ==, >, >=, <, <=, &&, ||, exp[exp]
-            if (ctx.LB() != null) {
-                // exp[exp]
-                //TODO
-
-            } else if (!expTypesMap.get(ctx.exp(0)).equals(expTypesMap.get(ctx.exp(1)))) {
-                System.err.println("Error type 7: binary operation on unmatched variables in " + ctx.getText());
-                expTypesMap.put(ctx, "wrong exp");
-            } else if (!expTypesMap.get(ctx.exp(0)).equals("int") && !expTypesMap.get(ctx.exp(0)).equals("float")) {
-                System.err.println("Error type 7: " + expTypesMap.get(ctx.exp(0)) + " cannot be calculated");
-                expTypesMap.put(ctx, "wrong exp");
-                // &&, ||
-                if (ctx.AND() != null || ctx.OR() != null) {
-                    if (!expTypesMap.get(ctx.exp(0)).equals("int")) {
-                        System.err.println("Error type 7: float cannot do boolean operations");
-                        expTypesMap.put(ctx, "wrong exp");
+            if (ctx.LB() == null) {
+                // exp[exp] is handled below
+                if (!expTypesMap.get(ctx.exp(0)).equals(expTypesMap.get(ctx.exp(1)))) {
+                    System.err.println("Error type 7: binary operation on unmatched variables in " + ctx.getText());
+                    expTypesMap.put(ctx, "wrong exp");
+                } else if (!expTypesMap.get(ctx.exp(0)).equals("int") && !expTypesMap.get(ctx.exp(0)).equals("float")) {
+                    System.err.println("Error type 7: " + expTypesMap.get(ctx.exp(0)) + " cannot be calculated");
+                    expTypesMap.put(ctx, "wrong exp");
+                    // &&, ||
+                    if (ctx.AND() != null || ctx.OR() != null) {
+                        if (!expTypesMap.get(ctx.exp(0)).equals("int")) {
+                            System.err.println("Error type 7: float cannot do boolean operations");
+                            expTypesMap.put(ctx, "wrong exp");
+                        }
                     }
+                } else {
+                    // correct ctx
+                    expTypesMap.put(ctx, expTypesMap.get(ctx.exp(0)));
                 }
-            } else {
-                // correct ctx
-                expTypesMap.put(ctx, expTypesMap.get(ctx.exp(0)));
             }
         } else {
             // (exp), !exp, -exp
@@ -467,7 +466,7 @@ public void exitExp(splParser.ExpContext ctx) {
                     System.err.println("Error type 2: "+fun_Name +" is invoked without a definition");
                 }
             } else {
-                //TODO: value is the return type of the function
+                // value is the return type of the function
                 expTypesMap.put(ctx, FunctionTable.get(fun_Name));
             }
         }
@@ -485,7 +484,11 @@ public void exitExp(splParser.ExpContext ctx) {
                     String temp_name = id_name;
                     if(!symbolTable.containsKey(id_name)){
                         String symbol_type = findInStruct(id_name, ctx);
-                        expTypesMap.put(ctx, symbol_type);
+                        if (!symbol_type.isEmpty()) {
+                            expTypesMap.put(ctx, symbol_type);
+                        } else {
+                            expTypesMap.put(ctx, "wrong exp");
+                        }
                     }
 
                     // while(!symbolTable.containsKey(temp_name)){
@@ -523,13 +526,12 @@ public void exitExp(splParser.ExpContext ctx) {
                     System.err.println("Error type 1: " + var_Name + " is used before definition.");
                 }
                 else {
-                    //TODO: value is the data type of identifier
+                    // value is the data type of identifier
                     expTypesMap.put(ctx, symbolTable.get(var_Name));
                 }
             }
         }
     }
-
 
     if (ctx.LB() != null && ctx.RB() != null) {
         // 获取数组索引的表达式
@@ -539,36 +541,69 @@ public void exitExp(splParser.ExpContext ctx) {
         // if(idExp.ID()!=null){
         //     String varType = symbolTable.get(idExp.ID()); // 从符号表中获取变量类型
         // }
-        while(temp_exp.ID()==null){
+        while (temp_exp.ID() == null) {
             depth++;
-            if(temp_exp.exp(0)==null){
-                //实际上在语法检查后不会出现这种情况 只是写的时候为了防止可能的死循环
+            if (temp_exp.LB() == null) {
+                // e.g. (arr + 3)[2], (arr[a] + 2)[1]
                 System.err.println("Error type 10 : Applying indexing operator on non-array type variables");
+                expTypesMap.put(ctx, "wrong exp");
+                break;
+            }
+            if (expTypesMap.get(temp_exp) != null && expTypesMap.get(temp_exp).equals("wrong exp")) {
+                // temp_exp already has error, that is, exp1 of exp1[exp2] is already illegal
+                expTypesMap.put(ctx, "wrong exp");
+                break;
+            }
+            if (temp_exp.exp(0) == null) {
+                // this is when temp_exp cannot produce exp[exp] (or even (exp + exp), -exp). e.g. temp_exp is 3
+                System.err.println("Error type 10 : Applying indexing operator on non-array type variables");
+                expTypesMap.put(ctx, "wrong exp");
                 break;
             }
             // System.out.println(depth);
             temp_exp = temp_exp.exp(0);
         }
-        if(temp_exp.ID()!=null){
-            
+        if (temp_exp.ID() != null) {
             String varType = symbolTable.get(temp_exp.ID().getText()); // 从符号表中获取变量类型
             // System.out.println(temp_exp.ID().getText() + " " + varType);
+            int originDimension = 0;
             for (int i = 0; i < varType.length(); i++) {
                 if (varType.charAt(i) == '[') {
-                    depth--;
+                    originDimension++;
                 }
             }
             // System.out.println(depth);
-            if(depth>0){
+            if (depth > originDimension) {
                 System.err.println("Error type 10 : Applying indexing operator on non-array type variables");
+                expTypesMap.put(ctx, "wrong exp");
+            } else {
+                int cnt = 0;
+                int head;
+                int tail;
+                for (head = 0; head < varType.length(); head++) {
+                    if (varType.charAt(head) == '[') {
+                        break;
+                    }
+                }
+                for (tail = 0; tail < varType.length(); tail++) {
+                    if (varType.charAt(tail) == ']') {
+                        cnt++;
+                    }
+                    if (cnt == depth) {
+                        break;
+                    }
+                }
+                String expType = varType.substring(0, head) + varType.substring(tail + 1);
+                expTypesMap.put(ctx, expType);
             }
         }
 
         splParser.ExpContext indexExp = ctx.exp(1); // 第二个子表达式是数组索引
         
         // 判断索引表达式的类型是否是整数
-        if (indexExp != null && !isIntegerType(indexExp)) {
+        if (indexExp != null && !expTypesMap.get(indexExp).equals("int")) {
             System.err.println("Error type 12 : Array index is not an integer");
+            expTypesMap.put(ctx, "wrong exp");
         }
     }
 }
@@ -623,54 +658,54 @@ private String findInStruct(String id_name, splParser.ExpContext exp_ctx) {
 
 
 // 判断给定表达式是否是整数类型
-private boolean isIntegerType(splParser.ExpContext expCtx) {
-    // 简单的类型判断，可以根据上下文分析扩展
-    if (expCtx.INT() != null) {// 索引是一个整数字面值
-        return true; 
-    }else if (expCtx.ID() != null && expCtx.LP() == null && expCtx.RP() == null) {// 索引是一个变量
-        String varName = expCtx.ID().getText();
-        String varType = symbolTable.get(varName); // 从符号表中获取变量类型
-        return "int".equals(varType); 
-    }else if (expCtx.LB() != null && expCtx.RB() != null) {// 索引是一个数组
-        splParser.ExpContext idExp = expCtx.exp(0); // id部分
-        splParser.ExpContext temp_exp = idExp;
-        while(temp_exp.ID()==null){
-            if(temp_exp.exp(0)==null){
-                //实际上在语法检查后不会出现这种情况 只是写的时候为了防止可能的死循环
-                System.err.println("Error type 10 : Applying indexing operator on non-array type variables");
-                break;
-            }
-            temp_exp = temp_exp.exp(0);
-        }
-        if(temp_exp.ID()!=null){
-            String varType = symbolTable.get(temp_exp.ID().getText()); // 从符号表中获取变量类型
-            if(varType.startsWith("int")){
-                return true;
-            }else{
-                return false;
-            }
-        }
-    }else if (expCtx.ID() != null && expCtx.LP() != null && expCtx.RP() != null) { // 索引是一个调用
-        String funcName = expCtx.ID().getText();
-        // System.out.println("?");
-        if (FunctionTable.containsKey(funcName)) {
-            String returnType = FunctionTable.get(funcName); // 从函数表中获取返回值类型
-            // System.out.println(returnType);
-            return "int".equals(returnType); // 如果返回值是 "int"，则为整数类型
-        }
-    }else if (expCtx.exp().size() > 0) { // 索引是一个数学表达式
-        boolean isAllInteger = true;
-        for (splParser.ExpContext subExp : expCtx.exp()) {
-            if (!isIntegerType(subExp)) {
-                isAllInteger = false;
-                break;
-            }
-        }
-        // 如果所有子表达式都是整数类型，数学表达式也是整数类型
-        return isAllInteger;
-    }
-    return false; // 其他情况默认为非整数类型
-}
+//private boolean isIntegerType(splParser.ExpContext expCtx) {
+//    // 简单的类型判断，可以根据上下文分析扩展
+//    if (expCtx.INT() != null) {// 索引是一个整数字面值
+//        return true;
+//    }else if (expCtx.ID() != null && expCtx.LP() == null && expCtx.RP() == null) {// 索引是一个变量
+//        String varName = expCtx.ID().getText();
+//        String varType = symbolTable.get(varName); // 从符号表中获取变量类型
+//        return "int".equals(varType);
+//    }else if (expCtx.LB() != null && expCtx.RB() != null) {// 索引是一个数组
+//        splParser.ExpContext idExp = expCtx.exp(0); // id部分
+//        splParser.ExpContext temp_exp = idExp;
+//        while(temp_exp.ID()==null){
+//            if(temp_exp.exp(0)==null){
+//                //实际上在语法检查后不会出现这种情况 只是写的时候为了防止可能的死循环
+//                System.err.println("Error type 10 : Applying indexing operator on non-array type variables");
+//                break;
+//            }
+//            temp_exp = temp_exp.exp(0);
+//        }
+//        if(temp_exp.ID()!=null){
+//            String varType = symbolTable.get(temp_exp.ID().getText()); // 从符号表中获取变量类型
+//            if(varType.startsWith("int")){
+//                return true;
+//            }else{
+//                return false;
+//            }
+//        }
+//    }else if (expCtx.ID() != null && expCtx.LP() != null && expCtx.RP() != null) { // 索引是一个调用
+//        String funcName = expCtx.ID().getText();
+//        // System.out.println("?");
+//        if (FunctionTable.containsKey(funcName)) {
+//            String returnType = FunctionTable.get(funcName); // 从函数表中获取返回值类型
+//            // System.out.println(returnType);
+//            return "int".equals(returnType); // 如果返回值是 "int"，则为整数类型
+//        }
+//    }else if (expCtx.exp().size() > 0) { // 索引是一个数学表达式
+//        boolean isAllInteger = true;
+//        for (splParser.ExpContext subExp : expCtx.exp()) {
+//            if (!isIntegerType(subExp)) {
+//                isAllInteger = false;
+//                break;
+//            }
+//        }
+//        // 如果所有子表达式都是整数类型，数学表达式也是整数类型
+//        return isAllInteger;
+//    }
+//    return false; // 其他情况默认为非整数类型
+//}
 
 
 
