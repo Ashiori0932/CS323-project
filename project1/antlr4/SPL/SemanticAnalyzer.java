@@ -1,5 +1,6 @@
 package SPL;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -17,6 +18,8 @@ public class SemanticAnalyzer extends splBaseListener {
     private Map<String, Map<String, String>> structSymbolTables = new HashMap<>();
     //store the type of each exp
     private Map<ParseTree, String> expTypesMap = new HashMap<>();
+    //store args types of functions
+    private Map<String, List<String>> funcArgsTypeMap = new HashMap<>();
 
 @Override
 public void exitParamDec(splParser.ParamDecContext ctx) {
@@ -117,6 +120,35 @@ public void exitDef(splParser.DefContext ctx) {
     }
 }
 
+@Override
+public void exitFunDec(splParser.FunDecContext ctx) {
+    if (ctx.varList() != null) {
+        ArrayList<String> argsList = new ArrayList<>();
+        splParser.VarListContext tempVarList = ctx.varList();
+        while (tempVarList.varList() != null) {
+            splParser.ParamDecContext paramDecContext = tempVarList.paramDec();
+            if (paramDecContext.specifier() != null) {
+                if (paramDecContext.specifier().TYPE() != null) {
+                    argsList.add(paramDecContext.specifier().TYPE().getText());
+                } else if (paramDecContext.specifier().structSpecifier() != null) {
+                    argsList.add(paramDecContext.specifier().structSpecifier().ID().getText());
+                }
+            }
+            tempVarList = tempVarList.varList();
+        }
+        splParser.ParamDecContext paramDecContext = tempVarList.paramDec();
+        if (paramDecContext.specifier() != null) {
+            if (paramDecContext.specifier().TYPE() != null) {
+                argsList.add(paramDecContext.specifier().TYPE().getText());
+            } else if (paramDecContext.specifier().structSpecifier() != null) {
+                argsList.add(paramDecContext.specifier().structSpecifier().ID().getText());
+            }
+        }
+        funcArgsTypeMap.put(ctx.ID().getText(), argsList);
+    } else {
+        funcArgsTypeMap.put(ctx.ID().getText(), new ArrayList<>());
+    }
+}
 
 // // function declaration
 // @Override
@@ -466,6 +498,34 @@ public void exitExp(splParser.ExpContext ctx) {
                     System.err.println("Error type 2: "+fun_Name +" is invoked without a definition");
                 }
             } else {
+                // check whether the args of function are correct
+                List<String> argsTypes = funcArgsTypeMap.get(fun_Name);
+                if (ctx.args() == null) {
+                    if (!argsTypes.isEmpty()) {
+                        System.err.println("Error type 9: function \"" + fun_Name + "\"’s arguments expect arguments, but got none");
+                    }
+                } else {
+                    splParser.ArgsContext tempArgs = ctx.args();
+                    int cnt = 0;
+                    boolean correctMatched = true;
+                    for (int i = 0; i < argsTypes.size(); i++) {
+                        if (expTypesMap.get(tempArgs.exp()).equals(argsTypes.get(i))) {
+                            cnt++;
+                            if (tempArgs.args() != null && i != argsTypes.size()-1) {
+                                tempArgs = tempArgs.args();
+                            } else {
+                                break;
+                            }
+                        } else {
+                            System.err.println("Error type 9: function \"" + fun_Name + "\"’s arguments mismatch the declared parameters 2");
+                            correctMatched = false;
+                            break;
+                        }
+                    }
+                    if (correctMatched && !(cnt == argsTypes.size() && tempArgs.args() == null)) {
+                        System.err.println("Error type 9: function \"" + fun_Name + "\"’s arguments mismatch the declared parameters");
+                    }
+                }
                 // value is the return type of the function
                 expTypesMap.put(ctx, FunctionTable.get(fun_Name));
             }
