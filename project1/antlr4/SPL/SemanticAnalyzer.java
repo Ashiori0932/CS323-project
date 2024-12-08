@@ -2,8 +2,7 @@ package SPL;
 
 import java.util.HashMap;
 import java.util.Map;
-import SPL.splBaseListener;
-import SPL.splParser;
+
 import org.antlr.v4.runtime.tree.ParseTree;
 
 import java.util.List;
@@ -18,7 +17,6 @@ public class SemanticAnalyzer extends splBaseListener {
     private Map<String, Map<String, String>> structSymbolTables = new HashMap<>();
     //store the type of each exp
     private Map<ParseTree, String> expTypesMap = new HashMap<>();
-
 
 @Override
 public void exitParamDec(splParser.ParamDecContext ctx) {
@@ -102,7 +100,7 @@ public void exitDef(splParser.DefContext ctx) {
             if (symbolTable.containsKey(varName_list)) {
                 System.err.println("Error type 3: Variable " + varName_list + " is already declared in the same scope.");
             } else {
-                // System.out.println("get varible" + varName_list + " in def list"+ type);
+                // System.out.println("get variable" + varName_list + " in def list"+ type);
                 // 这里对应的应该写type和value
                 symbolTable.put(varName_list, struct_name + arraySize); 
                 //System.out.println("successfully put " + varName_list + " " + struct_name);
@@ -326,7 +324,6 @@ public void exitSpecifier(splParser.SpecifierContext ctx) {
 public void exitExp(splParser.ExpContext ctx) {
     // check if the types of child exps are matched
     if (ctx.exp() != null) {
-        //TODO
         if (ctx.ASSIGN() != null) {
             if (!expTypesMap.get(ctx.exp(0)).equals(expTypesMap.get(ctx.exp(1)))) {
                 System.err.println("Error type 5: unmatched type for on both sides of assignment for " + ctx.getText());
