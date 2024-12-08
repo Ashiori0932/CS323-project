@@ -4,6 +4,8 @@ import java.util.HashMap;
 import java.util.Map;
 import SPL.splBaseListener;
 import SPL.splParser;
+import org.antlr.v4.runtime.tree.ParseTree;
+
 import java.util.List;
 
 
@@ -14,6 +16,8 @@ public class SemanticAnalyzer extends splBaseListener {
     private Map<String, String> FunctionTable = new HashMap<>();
     // 存储结构体名字和对应的符号表
     private Map<String, Map<String, String>> structSymbolTables = new HashMap<>();
+    //store the type of each exp
+    private Map<ParseTree, String> expTypesMap = new HashMap<>();
 
 
 @Override
@@ -29,7 +33,6 @@ public void exitParamDec(splParser.ParamDecContext ctx) {
             //System.out.println("get varible" + varName + " in para dec "+ type);
             // 这里对应的应该写type和value
             symbolTable.put(varName, type);
-            
         }
     }
     else{
@@ -266,7 +269,7 @@ public void exitSpecifier(splParser.SpecifierContext ctx) {
             // System.out.println("This struct " + struct_name +" is successfully added");
             splParser.DefListContext temp = ctx.structSpecifier().defList();
             Map<String, String> correspond_symbolTable = structSymbolTables.get(struct_name);
-            // 如果能够继续往下寻找declist
+            // 如果能够继续往下寻找decList
             while (temp != null){
                 splParser.DefContext temp_def = temp.def();
                 if(temp_def != null){
@@ -321,6 +324,33 @@ public void exitSpecifier(splParser.SpecifierContext ctx) {
 
 @Override
 public void exitExp(splParser.ExpContext ctx) {
+    // check if the types of child exps are matched
+    if (ctx.exp() != null) {
+        //TODO
+        if (ctx.ASSIGN() != null) {
+            if (!expTypesMap.get(ctx.exp(0)).equals(expTypesMap.get(ctx.exp(1)))) {
+                System.err.println("Error type 5: unmatched type for on both sides of assignment for " + ctx.getText());
+            }
+        } else if (ctx.exp(1) != null) {
+            // 2 exp children
+            if (ctx.LB() != null) {
+                // ctx is an array
+                //TODO
+            } else if (!expTypesMap.get(ctx.exp(0)).equals(expTypesMap.get(ctx.exp(1)))) {
+                System.err.println("Error type 7: binary operation on unmatched variables in " + ctx.getText());
+                expTypesMap.put(ctx, "wrong");
+            } else if (expTypesMap.get(ctx.exp(0)).equals("struct")) {
+                System.err.println("Error type 7: structs cannot be calculated: " + ctx.getText());
+                expTypesMap.put(ctx, "wrong");
+            } else {
+                // correct ctx
+                expTypesMap.put(ctx, expTypesMap.get(ctx.exp(0)));
+            }
+        } else {
+            // only 1 exp child
+            expTypesMap.put(ctx, expTypesMap.get(ctx.exp(0)));
+        }
+    }
     if (ctx.ID() != null) {
         // 函数检查 (type 2)
         if(ctx.LP() != null) {
@@ -332,6 +362,9 @@ public void exitExp(splParser.ExpContext ctx) {
                 }else{
                     System.err.println("Error type 2: "+fun_Name +" is invoked without a definition");
                 }
+            } else {
+                //TODO
+                expTypesMap.put(ctx, FunctionTable.get(fun_Name));
             }
         }
         // 普通检查（type 1）
@@ -383,6 +416,10 @@ public void exitExp(splParser.ExpContext ctx) {
             else{
                 if (!symbolTable.containsKey(var_Name)) {
                     System.err.println("Error type 1: " + var_Name + " is used before definition.");
+                }
+                else {
+                    //TODO
+                    expTypesMap.put(ctx, symbolTable.get(var_Name));
                 }
             }
         }
