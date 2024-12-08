@@ -376,7 +376,7 @@ public void exitSpecifier(splParser.SpecifierContext ctx) {
                         String name = temp_def.decList().dec().varDec().ID().getText();
                         //System.out.println("in the struct" + name);
                         if(structSymbolTables.containsKey(sub_struct_name)){
-                            correspond_symbolTable.put(name, sub_struct_name );
+                            correspond_symbolTable.put(name, sub_struct_name);
                         }
                     }
                 }
@@ -392,30 +392,67 @@ public void exitSpecifier(splParser.SpecifierContext ctx) {
 
 @Override
 public void exitExp(splParser.ExpContext ctx) {
+    if (ctx.INT() != null) {
+        expTypesMap.put(ctx, "int");
+        return;
+    } else if (ctx.FLOAT() != null) {
+        expTypesMap.put(ctx, "float");
+        return;
+    } else if (ctx.CHAR() != null) {
+        expTypesMap.put(ctx, "char");
+        return;
+    }
     // check if the types of child exps are matched
     if (ctx.exp() != null) {
         if (ctx.ASSIGN() != null) {
             if (!expTypesMap.get(ctx.exp(0)).equals(expTypesMap.get(ctx.exp(1)))) {
                 System.err.println("Error type 5: unmatched type for on both sides of assignment for " + ctx.getText());
+                expTypesMap.put(ctx, "wrong exp");
+            }
+            if (ctx.exp(0).ID() == null) {
+                //TODO
+                System.err.println("Error type 6: rvalue appears on the left-side of assignment");
+                expTypesMap.put(ctx, "wrong exp");
             }
         } else if (ctx.exp(1) != null) {
-            // 2 exp children
+            // +, -, *, /, !=, ==, >, >=, <, <=, &&, ||, exp[exp]
             if (ctx.LB() != null) {
-                // ctx is an array
+                // exp[exp]
                 //TODO
+
             } else if (!expTypesMap.get(ctx.exp(0)).equals(expTypesMap.get(ctx.exp(1)))) {
                 System.err.println("Error type 7: binary operation on unmatched variables in " + ctx.getText());
-                expTypesMap.put(ctx, "wrong");
-            } else if (expTypesMap.get(ctx.exp(0)).equals("struct")) {
-                System.err.println("Error type 7: structs cannot be calculated: " + ctx.getText());
-                expTypesMap.put(ctx, "wrong");
+                expTypesMap.put(ctx, "wrong exp");
+            } else if (!expTypesMap.get(ctx.exp(0)).equals("int") && !expTypesMap.get(ctx.exp(0)).equals("float")) {
+                System.err.println("Error type 7: " + expTypesMap.get(ctx.exp(0)) + " cannot be calculated");
+                expTypesMap.put(ctx, "wrong exp");
+                // &&, ||
+                if (ctx.AND() != null || ctx.OR() != null) {
+                    if (!expTypesMap.get(ctx.exp(0)).equals("int")) {
+                        System.err.println("Error type 7: float cannot do boolean operations");
+                        expTypesMap.put(ctx, "wrong exp");
+                    }
+                }
             } else {
                 // correct ctx
                 expTypesMap.put(ctx, expTypesMap.get(ctx.exp(0)));
             }
         } else {
-            // only 1 exp child
-            expTypesMap.put(ctx, expTypesMap.get(ctx.exp(0)));
+            // (exp), !exp, -exp
+            if (ctx.NOT() != null) {
+                if (!expTypesMap.get(ctx.exp(0)).equals("int")) {
+                    System.err.println("Error type 7: float cannot do boolean operations");
+                    expTypesMap.put(ctx, "wrong exp");
+                }
+            } else if (ctx.MINUS() != null) {
+                if (!expTypesMap.get(ctx.exp(0)).equals("int") && !expTypesMap.get(ctx.exp(0)).equals("float")) {
+                    System.err.println("Error type 7: " + expTypesMap.get(ctx.exp(0)) + " cannot be calculated");
+                    expTypesMap.put(ctx, "wrong exp");
+                }
+            } else {
+                // correct ctx
+                expTypesMap.put(ctx, expTypesMap.get(ctx.exp(0)));
+            }
         }
     }
     if (ctx.ID() != null) {
@@ -430,7 +467,7 @@ public void exitExp(splParser.ExpContext ctx) {
                     System.err.println("Error type 2: "+fun_Name +" is invoked without a definition");
                 }
             } else {
-                //TODO
+                //TODO: value is the return type of the function
                 expTypesMap.put(ctx, FunctionTable.get(fun_Name));
             }
         }
@@ -447,7 +484,8 @@ public void exitExp(splParser.ExpContext ctx) {
                     splParser.ExpContext temp = ctx;
                     String temp_name = id_name;
                     if(!symbolTable.containsKey(id_name)){
-                        findInStruct(id_name, ctx);
+                        String symbol_type = findInStruct(id_name, ctx);
+                        expTypesMap.put(ctx, symbol_type);
                     }
 
                     // while(!symbolTable.containsKey(temp_name)){
@@ -485,7 +523,7 @@ public void exitExp(splParser.ExpContext ctx) {
                     System.err.println("Error type 1: " + var_Name + " is used before definition.");
                 }
                 else {
-                    //TODO
+                    //TODO: value is the data type of identifier
                     expTypesMap.put(ctx, symbolTable.get(var_Name));
                 }
             }
