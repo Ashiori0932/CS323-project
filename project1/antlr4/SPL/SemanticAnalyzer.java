@@ -202,8 +202,15 @@ public void exitExtDef(splParser.ExtDefContext ctx) {
                     }
                     else{
                         // System.out.println("IN return");
-                        //如果返回的是整数类型...
-                        if(temp.stmt().exp().INT() != null){
+                        //如果返回的是一个exp
+                        if(temp.stmt().exp()!=null){
+                            String exp_type = expTypesMap.get(temp.stmt().exp());
+                            // System.out.println("exp_type is" + exp_type);
+                            if(!type.equals(exp_type)){
+                                System.err.println("Error type 8: return type is not match");
+                            }
+                        }
+                        else if(temp.stmt().exp().INT() != null){
                             if(!type.equals("int")){
                                 // System.out.println("这个函数的type是" + type);
                                 System.err.println("Error type 8: INT return type is not match");
@@ -251,12 +258,20 @@ public void exitExtDef(splParser.ExtDefContext ctx) {
                             String fun_type = FunctionTable.get(fun_Name);
                             // System.out.println("IN return function" + fun_Name + " " + fun_type);
                             if(fun_type!=null && !fun_type.equals(type)){
-                                System.err.println("Error type 8: " + fun_Name + " return type" + fun_type + " is not match");
+                                System.err.println("Error type 8: " + fun_Name + " return type " + fun_type + " is not match");
                             }
                         }
                         else{
                             // System.out.println("IN return");
                             //如果返回的是整数类型...
+                            if(temmp.exp()!=null){
+                                String exp_type = expTypesMap.get(temmp.exp());
+                                // System.out.println("exp_type is" + exp_type);
+                                if(!type.equals(exp_type)){
+                                    System.err.println("Error type 8: return type is not match");
+                            }
+                            }
+
                             if(temmp.exp().INT() != null){
                                 if(!type.equals("int")){
                                     // System.out.println("这个函数的type是" + type);
@@ -348,7 +363,7 @@ public void parse_temp_mul_list(List<splParser.StmtContext> temp_mul_list, Strin
             }
         }
         else if(temp_mul_list.get(j).stmt()!=null){
-            System.out.println(temp_mul_list.size() + " " + j);
+            // System.out.println(temp_mul_list.size() + " " + j);
             temp_mul_list = temp_mul_list.get(j).stmt();
             // 对于这里面每一个stmt
             parse_temp_mul_list(temp_mul_list, type);
