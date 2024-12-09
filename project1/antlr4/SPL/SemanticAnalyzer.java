@@ -269,8 +269,9 @@ public class SemanticAnalyzer extends splBaseListener {
                 String funName = ctx.funDec().ID().getText();
                 // String varName = ctx.ID().getText();
                 // 检查变量是否已在符号表中
+                int line = ctx.funDec().ID().getSymbol().getLine();
                 if (FunctionTable.containsKey(funName)) {
-                    System.err.println("Error type 4: Function " + funName + " is redefined.");
+                    System.err.println("Error type 4 at Line " + line + ": Function " + funName + " is redefined.");
                 } else {
                     // System.out.println(varName+" variable");
                     FunctionTable.put(funName, type);
@@ -498,12 +499,13 @@ public class SemanticAnalyzer extends splBaseListener {
                 if (!expTypesMap.get(ctx.exp(0)).equals(expTypesMap.get(ctx.exp(1)))) {
                     if (!expTypesMap.get(ctx.exp(0)).equals("wrong exp") &&
                             !expTypesMap.get(ctx.exp(1)).equals("wrong exp")) {
-                        System.err.println("Error type 5 at Line " + line + ": unmatched type for on both sides of assignment for " + ctx.getText());
+                        
                     }
+                    System.err.println("Error type 5 at Line " + line + ": unmatched type for on both sides of assignment for " + ctx.getText());
                     expTypesMap.put(ctx, "wrong exp");
                 }
                 else if (expTypesMap.get(ctx.exp(0)).equals("wrong exp")) {
-//                    System.err.println("Error type 5 at Line " + line + ": unmatched type for on both sides of assignment for " + ctx.getText());
+                    // System.err.println("Error type 5 at Line " + line + ": unmatched type for on both sides of assignment for " + ctx.getText());
                     expTypesMap.put(ctx, "wrong exp");
                 }
                 else {
