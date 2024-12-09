@@ -202,7 +202,7 @@ public void exitExtDef(splParser.ExtDefContext ctx) {
                         // System.out.println("IN return function" + fun_Name + " " + fun_type);
                         if(!fun_type.equals(type)){ 
                             int line =  temp.stmt().exp().ID().getSymbol().getLine();                             
-                            System.err.println("Error type 8 at Line " + line + ": " + fun_Name + " return type" + fun_type + " is not match");
+                            System.err.println("Error type 8 at Line " + line + ": " + fun_Name + " return type " + fun_type + " is not match");
                         }
                     }
                     else{
