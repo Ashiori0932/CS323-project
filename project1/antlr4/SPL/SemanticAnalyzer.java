@@ -440,6 +440,11 @@ public void exitExp(splParser.ExpContext ctx) {
             if (!expTypesMap.get(ctx.exp(0)).equals(expTypesMap.get(ctx.exp(1)))) {
                 System.err.println("Error type 5: unmatched type for on both sides of assignment for " + ctx.getText());
                 expTypesMap.put(ctx, "wrong exp");
+            } else if (expTypesMap.get(ctx.exp(0)).equals("wrong exp")) {
+                System.err.println("Error type 5: unmatched type for on both sides of assignment for " + ctx.getText());
+                expTypesMap.put(ctx, "wrong exp");
+            } else {
+                expTypesMap.put(ctx, expTypesMap.get(ctx.exp(0)));
             }
             if ((ctx.exp(0).ID() == null && ctx.exp(0).LB() == null) ||
                     (ctx.exp(0).ID() != null && ctx.exp(0).LP() != null)) {
@@ -453,19 +458,26 @@ public void exitExp(splParser.ExpContext ctx) {
                 if (!expTypesMap.get(ctx.exp(0)).equals(expTypesMap.get(ctx.exp(1)))) {
                     System.err.println("Error type 7: binary operation on unmatched variables in " + ctx.getText());
                     expTypesMap.put(ctx, "wrong exp");
+                } else if (expTypesMap.get(ctx.exp(0)).equals("wrong exp")) {
+                    System.err.println("Error type 7: binary operation on unmatched variables in " + ctx.getText());
+                    expTypesMap.put(ctx, "wrong exp");
                 } else if (!expTypesMap.get(ctx.exp(0)).equals("int") && !expTypesMap.get(ctx.exp(0)).equals("float")) {
                     System.err.println("Error type 7: " + expTypesMap.get(ctx.exp(0)) + " cannot be calculated");
                     expTypesMap.put(ctx, "wrong exp");
+                } else {
                     // &&, ||
                     if (ctx.AND() != null || ctx.OR() != null) {
                         if (!expTypesMap.get(ctx.exp(0)).equals("int")) {
                             System.err.println("Error type 7: float cannot do boolean operations");
                             expTypesMap.put(ctx, "wrong exp");
+                        } else {
+                            // correct ctx
+                            expTypesMap.put(ctx, expTypesMap.get(ctx.exp(0)));
                         }
+                    } else {
+                        // correct ctx
+                        expTypesMap.put(ctx, expTypesMap.get(ctx.exp(0)));
                     }
-                } else {
-                    // correct ctx
-                    expTypesMap.put(ctx, expTypesMap.get(ctx.exp(0)));
                 }
             }
         } else {
@@ -474,11 +486,16 @@ public void exitExp(splParser.ExpContext ctx) {
                 if (!expTypesMap.get(ctx.exp(0)).equals("int")) {
                     System.err.println("Error type 7: float cannot do boolean operations");
                     expTypesMap.put(ctx, "wrong exp");
+                } else {
+                    expTypesMap.put(ctx, expTypesMap.get(ctx.exp(0)));
                 }
             } else if (ctx.MINUS() != null) {
                 if (!expTypesMap.get(ctx.exp(0)).equals("int") && !expTypesMap.get(ctx.exp(0)).equals("float")) {
                     System.err.println("Error type 7: " + expTypesMap.get(ctx.exp(0)) + " cannot be calculated");
                     expTypesMap.put(ctx, "wrong exp");
+                }
+                else {
+                    expTypesMap.put(ctx, expTypesMap.get(ctx.exp(0)));
                 }
             } else {
                 // correct ctx
