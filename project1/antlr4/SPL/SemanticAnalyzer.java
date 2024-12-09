@@ -179,64 +179,8 @@ public void exitExtDef(splParser.ExtDefContext ctx) {
         if(ctx.compSt()!=null){
             temp = ctx.compSt().stmtList();
             // System.out.println("type is"+ type);
-            if (temp != null){
-                // System.out.println("IN return1111");
-                if(temp.stmt() != null && temp.stmt().RETURN() != null){
-                    // 如果返回的是一个ID
-                    // System.out.println("IN return1");
-                    if (temp.stmt().exp().ID() != null && temp.stmt().exp().LP() == null){
-                        // System.out.println("IN return ID");
-                        String stmtlist_name = temp.stmt().exp().ID().getText();
-                        String return_type = symbolTable.get(stmtlist_name);
-                        // System.out.println("IN return" + stmtlist_name);
-                        if(!return_type.equals(type)){     
-                            int line = temp.stmt().exp().ID().getSymbol().getLine();                      
-                            System.err.println("Error type 8 at Line " + line + ": " + stmtlist_name + " " + return_type + " is not match");
-                        }
-                    }
-                    // 如果返回的就是一个函数
-                    else if(temp.stmt().exp().LP() != null){
-                        //System.out.println("IN return function");
-                        String fun_Name = temp.stmt().exp().ID().getText();
-                        String fun_type = FunctionTable.get(fun_Name);
-                        // System.out.println("IN return function" + fun_Name + " " + fun_type);
-                        if(!fun_type.equals(type)){ 
-                            int line =  temp.stmt().exp().ID().getSymbol().getLine();                             
-                            System.err.println("Error type 8 at Line " + line + ": " + fun_Name + " return type " + fun_type + " is not match");
-                        }
-                    }
-                    else{
-                        // System.out.println("IN return");
-                        //如果返回的是一个exp
-                        if(temp.stmt().exp()!=null){
-                            String exp_type = expTypesMap.get(temp.stmt().exp());
-                            // System.out.println("exp_type is" + exp_type);
-                            if(!type.equals(exp_type)){
-                                System.err.println("Error type 8: return type is not match");
-                            }
-                        }
-                        else if(temp.stmt().exp().INT() != null){
-                            if(!type.equals("int")){
-                                // System.out.println("这个函数的type是" + type);    
-                                int line = temp.stmt().exp().INT().getSymbol().getLine();                                
-                                System.err.println("Error type 8 at Line " + line + ": INT return type is not match");
-                            }
-                        }
-                        else if(temp.stmt().exp().FLOAT() != null){
-                            if(!type.equals("float")){  
-                                int line = temp.stmt().exp().FLOAT().getSymbol().getLine();  
-                                System.err.println("Error type 8 at Line " + line + ": FLOAT return type is not match");
-                            }
-                        }
-                        else if(temp.stmt().exp().CHAR() != null){
-                            if(!type.equals("char")){    
-                                int line = temp.stmt().exp().CHAR().getSymbol().getLine();                          
-                                System.err.println("Error type 8 at Line " + line + ": CHAR return type is not match");
-                            }
-                        }
-                    }
-                }
-            }
+            // 对于多个stmtlist并列的情况判断return
+            parse_mul_stmtlist(temp, type);
         }
 
         if (temp!=null && temp.stmt()!=null && temp.stmt().stmt()!=null){
@@ -257,29 +201,32 @@ public void exitExtDef(splParser.ExtDefContext ctx) {
                             // System.out.println("IN return" + stmtlist_name);
                             if(!return_type.equals(type)){   
                                 int line = temmp.exp().ID().getSymbol().getLine();                            
-                                System.err.println("Error type 8 at Line " + line + ": " + stmtlist_name + " " + return_type + " is not match");
+                                System.err.println("Error type 8 at Line " + line + ": " + stmtlist_name + " " + "return_type" + " is not match");
                             }
                         }
                         // 如果返回的就是一个函数
-                        else if(temmp.exp().LP() != null){
+                        else if(temmp.exp().LP() != null && temmp.RETURN()!=null){
                             // System.out.println("IN return function");
                             String fun_Name = temmp.exp().ID().getText();
                             String fun_type = FunctionTable.get(fun_Name);
                             // System.out.println("IN return function" + fun_Name + " " + fun_type);
                             if(fun_type!=null && !fun_type.equals(type)){   
                                 int line = temmp.exp().ID().getSymbol().getLine();                            
-                                System.err.println("Error type 8 at Line " + line + ": " + fun_Name + " return type" + fun_type + " is not match");
+                                System.err.println("Error type 8 at Line " + line + ": " + fun_Name + " return type " + fun_type + " is not match");
                             }
                         }
-                        else{
+                        else if(temmp.RETURN()!=null){
                             // System.out.println("IN return");
                             //如果返回的是整数类型...
                             if(temmp.exp()!=null){
+                                int line = temmp.exp().getStart().getLine();
                                 String exp_type = expTypesMap.get(temmp.exp());
-                                // System.out.println("exp_type is" + exp_type);
-                                if(!type.equals(exp_type)){
-                                    System.err.println("Error type 8: return type is not match");
-                            }
+                                //System.out.println(temmp.exp().getText());
+                                //System.out.println("exp_type is" + exp_type);
+                                // System.out.println("type is" + type);
+                                if(!type.equals(exp_type) && !exp_type.equals("wrong exp")){
+                                    System.err.println("Error type 8 at Line " + line + ": " + "return type is not match");
+                                }
                             }
 
                             if(temmp.exp().INT() != null){
@@ -332,6 +279,70 @@ public void exitExtDef(splParser.ExtDefContext ctx) {
     symbolTable.clear();
 }
 
+public void parse_mul_stmtlist(splParser.StmtListContext temp, String type){
+    if (temp != null){
+        // System.out.println("IN return1111");
+        if(temp.stmt() != null && temp.stmt().RETURN() != null){
+            // 如果返回的是一个ID
+            //System.out.println("IN return1");
+            if (temp.stmt().exp().ID() != null && temp.stmt().exp().LP() == null){
+                // System.out.println("IN return ID");
+                String stmtlist_name = temp.stmt().exp().ID().getText();
+                String return_type = symbolTable.get(stmtlist_name);
+                // System.out.println("IN return" + stmtlist_name);
+                if(!return_type.equals(type)){     
+                    int line = temp.stmt().exp().ID().getSymbol().getLine();                      
+                    System.err.println("Error type 8 at Line " + line + ": " + "return type is not match");
+                }
+            }
+            // 如果返回的就是一个函数
+            else if(temp.stmt().exp().LP() != null){
+                //System.out.println("IN return function");
+                String fun_Name = temp.stmt().exp().ID().getText();
+                String fun_type = FunctionTable.get(fun_Name);
+                // System.out.println("IN return function" + fun_Name + " " + fun_type);
+                if(!fun_type.equals(type)){ 
+                    int line =  temp.stmt().exp().ID().getSymbol().getLine();                             
+                    System.err.println("Error type 8 at Line " + line + ": " + "return type is not match");
+                }
+            }
+            else{
+                // System.out.println("IN return");
+                //如果返回的是一个exp
+                if(temp.stmt().exp()!=null){
+                    String exp_type = expTypesMap.get(temp.stmt().exp());
+                    // System.out.println("exp_type is" + exp_type);
+                    if(!type.equals(exp_type) && !exp_type.equals("wrong exp")){
+                        int line = temp.stmt().exp().getStart().getLine();
+                        System.err.println("Error type 8 at Line " + line + ": return type is not match");
+                    }
+                }
+                else if(temp.stmt().exp().INT() != null){
+                    if(!type.equals("int")){
+                        // System.out.println("这个函数的type是" + type);    
+                        int line = temp.stmt().exp().INT().getSymbol().getLine();                                
+                        System.err.println("Error type 8 at Line " + line + ": return type is not match");
+                    }
+                }
+                else if(temp.stmt().exp().FLOAT() != null){
+                    if(!type.equals("float")){  
+                        int line = temp.stmt().exp().FLOAT().getSymbol().getLine();  
+                        System.err.println("Error type 8 at Line " + line + ": return type is not match");
+                    }
+                }
+                else if(temp.stmt().exp().CHAR() != null){
+                    if(!type.equals("char")){    
+                        int line = temp.stmt().exp().CHAR().getSymbol().getLine();                          
+                        System.err.println("Error type 8 at Line " + line + ": return type is not match");
+                    }
+                }
+            }
+        }
+        temp = temp.stmtList();
+        parse_mul_stmtlist(temp, type);
+    }
+}
+
 public void parse_temp_mul_list(List<splParser.StmtContext> temp_mul_list, String type){
     for(int j=0;j<temp_mul_list.size();j++){
         if(temp_mul_list.get(j).compSt() != null){
@@ -343,7 +354,7 @@ public void parse_temp_mul_list(List<splParser.StmtContext> temp_mul_list, Strin
                 // System.out.println("IN return" + stmtlist_name);
                 if(!return_type.equals(type)){  
                     int line = temmp_mul.exp().ID().getSymbol().getLine();              
-                    System.err.println("Error type 8 at Line " + line + ": " + stmtlist_name + " " + return_type + " is not match");
+                    System.err.println("Error type 8 at Line " + line + ": " + "return type is not match");
                 }
             }
             // 如果返回的就是一个函数
@@ -354,29 +365,38 @@ public void parse_temp_mul_list(List<splParser.StmtContext> temp_mul_list, Strin
                 // System.out.println("IN return function" + fun_Name + " " + fun_type);
                 if(fun_type!=null && !fun_type.equals(type)){   
                     int line = temmp_mul.exp().ID().getSymbol().getLine();                
-                    System.err.println("Error type 8 at Line " + line + ": " + fun_Name + " return type" + fun_type + " is not match");
+                    System.err.println("Error type 8 at Line " + line + ": " + " return type is not match");
                 }
             }
-            else{
+            else if(temmp_mul.RETURN()!=null){
                 // System.out.println("IN return");
                 //如果返回的是整数类型...
-                if(temmp_mul.exp().INT() != null){
+                if(temmp_mul.exp()!=null){
+                    String exp_type = expTypesMap.get(temmp_mul.exp());
+                    // System.out.println("exp_type is" + exp_type);
+                    if(!type.equals(exp_type) && !exp_type.equals("wrong exp")){
+                        int line = temmp_mul.exp().getStart().getLine();
+                        System.err.println("Error type 8 at Line " + line + ": return type is not match");
+                    }
+                }
+
+                else if(temmp_mul.exp().INT() != null){
                     if(!type.equals("int")){
                         // System.out.println("这个函数的type是" + type);  
                         int line =  temmp_mul.exp().INT().getSymbol().getLine();                   
-                        System.err.println("Error type 8 at Line " + line + ": INT return type is not match");
+                        System.err.println("Error type 8 at Line " + line + ": return type is not match");
                     }
                 }
                 else if(temmp_mul.exp().FLOAT() != null){
                     if(!type.equals("float")){    
                         int line = temmp_mul.exp().FLOAT().getSymbol().getLine();                   
-                        System.err.println("Error type 8 at Line " + line + ": FLOAT return type is not match");
+                        System.err.println("Error type 8 at Line " + line + ": return type is not match");
                     }
                 }
                 else if(temmp_mul.exp().CHAR() != null){
                     if(!type.equals("char")){ 
                         int line = temmp_mul.exp().CHAR().getSymbol().getLine();                       
-                        System.err.println("Error type 8 at Line " + line + ": CHAR return type is not match");
+                        System.err.println("Error type 8 at Line " + line + ": return type is not match");
                     }
                 }
             }
@@ -562,7 +582,7 @@ public void exitExp(splParser.ExpContext ctx) {
                     int cnt = 0;
                     boolean correctMatched = true;
                     for (int i = 0; i < argsTypes.size(); i++) {
-                        if (expTypesMap.get(tempArgs.exp()).equals(argsTypes.get(i))) {
+                        if (expTypesMap.get(tempArgs.exp())!=null && expTypesMap.get(tempArgs.exp()).equals(argsTypes.get(i))) {
                             cnt++;
                             if (tempArgs.args() != null && i != argsTypes.size()-1) {
                                 tempArgs = tempArgs.args();
