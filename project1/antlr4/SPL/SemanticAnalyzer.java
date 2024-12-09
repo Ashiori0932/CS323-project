@@ -23,13 +23,14 @@ public class SemanticAnalyzer extends splBaseListener {
 
 @Override
 public void exitParamDec(splParser.ParamDecContext ctx) {
+    int line = ctx.getStart().getLine();
     // 如果是普通变量声明
     if (ctx.specifier().TYPE() != null) {
         String type = ctx.specifier().TYPE().getText();
         String varName = ctx.varDec().ID().getText();
         // 检查变量是否已在符号表中
         if (symbolTable.containsKey(varName)) {
-            System.err.println("Error type 3: Variable " + varName + " is already declared in the same parameter scope.");
+            System.err.println("Error type 3 at Line " + line + ": Variable " + varName + " is already declared in the same parameter scope.");
         } else {
             //System.out.println("get varible" + varName + " in para dec "+ type);
             // 这里对应的应该写type和value
@@ -47,6 +48,7 @@ public void exitParamDec(splParser.ParamDecContext ctx) {
 
 @Override
 public void exitDef(splParser.DefContext ctx) {
+    int line = ctx.getStart().getLine();
     // 如果是普通变量声明
     if (ctx.specifier().TYPE() != null) {
         String type = ctx.specifier().TYPE().getText();
@@ -59,15 +61,15 @@ public void exitDef(splParser.DefContext ctx) {
             String arraySize = "";
             while(temp_vardec.ID() == null){
                 arraySize = "[" + temp_vardec.INT() + "]" + arraySize;
-                if(Integer.parseInt(temp_vardec.INT().getText())<=0){
-                    System.err.println("Error type 12: The dimension size must be greater than 0 when declaring an array.");
+                if(Integer.parseInt(temp_vardec.INT().getText())<=0){                  
+                    System.err.println("Error type 12 at Line " + line + ": The dimension size must be greater than 0 when declaring an array.");
                 }
                 temp_vardec = temp_vardec.varDec();
             }
             String varName_list = temp_vardec.ID().getText();
             // System.out.println(varName_list + " 's type: " + type+arraySize);
-            if (symbolTable.containsKey(varName_list)) {
-                System.err.println("Error type 3: Variable " + varName_list + " is already declared in the same scope.");
+            if (symbolTable.containsKey(varName_list)) {               
+                System.err.println("Error type 3 at Line " + line + ": Variable " + varName_list + " is already declared in the same scope.");
             } else {
                 // System.out.println("get varible" + varName_list + " in def list"+ type);
                 // 这里对应的应该写type和value
@@ -94,14 +96,14 @@ public void exitDef(splParser.DefContext ctx) {
             String arraySize = "";
             while(temp_vardec.ID() == null){
                 arraySize = "[" + temp_vardec.INT() + "]" + arraySize;
-                if(Integer.parseInt(temp_vardec.INT().getText())<=0){
-                    System.err.println("Error type 12: The dimension size must be greater than 0 when declaring an array.");
+                if(Integer.parseInt(temp_vardec.INT().getText())<=0){                    
+                    System.err.println("Error type 12 at Line " + line + ": The dimension size must be greater than 0 when declaring an array.");
                 }
                 temp_vardec = temp_vardec.varDec();
             }
             String varName_list = temp_vardec.ID().getText();
-            if (symbolTable.containsKey(varName_list)) {
-                System.err.println("Error type 3: Variable " + varName_list + " is already declared in the same scope.");
+            if (symbolTable.containsKey(varName_list)) {               
+                System.err.println("Error type 3 at Line " + line + ": Variable " + varName_list + " is already declared in the same scope.");
             } else {
                 // System.out.println("get variable" + varName_list + " in def list"+ type);
                 // 这里对应的应该写type和value
@@ -169,6 +171,7 @@ public void exitFunDec(splParser.FunDecContext ctx) {
 // 外部声明
 @Override
 public void exitExtDef(splParser.ExtDefContext ctx) {
+    // int line = ctx.getStart().getLine();
     // 如果是普通变量声明
     if (ctx.specifier().TYPE() != null) {
         String type = ctx.specifier().TYPE().getText();
@@ -186,8 +189,9 @@ public void exitExtDef(splParser.ExtDefContext ctx) {
                         String stmtlist_name = temp.stmt().exp().ID().getText();
                         String return_type = symbolTable.get(stmtlist_name);
                         // System.out.println("IN return" + stmtlist_name);
-                        if(!return_type.equals(type)){
-                            System.err.println("Error type 8: " + stmtlist_name + " " + return_type + " is not match");
+                        if(!return_type.equals(type)){     
+                            int line = temp.stmt().exp().ID().getSymbol().getLine();                      
+                            System.err.println("Error type 8 at Line " + line + ": " + stmtlist_name + " " + return_type + " is not match");
                         }
                     }
                     // 如果返回的就是一个函数
@@ -196,8 +200,9 @@ public void exitExtDef(splParser.ExtDefContext ctx) {
                         String fun_Name = temp.stmt().exp().ID().getText();
                         String fun_type = FunctionTable.get(fun_Name);
                         // System.out.println("IN return function" + fun_Name + " " + fun_type);
-                        if(!fun_type.equals(type)){
-                            System.err.println("Error type 8: " + fun_Name + " return type" + fun_type + " is not match");
+                        if(!fun_type.equals(type)){ 
+                            int line =  temp.stmt().exp().ID().getSymbol().getLine();                             
+                            System.err.println("Error type 8 at Line " + line + ": " + fun_Name + " return type" + fun_type + " is not match");
                         }
                     }
                     else{
@@ -205,18 +210,21 @@ public void exitExtDef(splParser.ExtDefContext ctx) {
                         //如果返回的是整数类型...
                         if(temp.stmt().exp().INT() != null){
                             if(!type.equals("int")){
-                                // System.out.println("这个函数的type是" + type);
-                                System.err.println("Error type 8: INT return type is not match");
+                                // System.out.println("这个函数的type是" + type);    
+                                int line = temp.stmt().exp().INT().getSymbol().getLine();                                
+                                System.err.println("Error type 8 at Line " + line + ": INT return type is not match");
                             }
                         }
                         else if(temp.stmt().exp().FLOAT() != null){
-                            if(!type.equals("float")){
-                                System.err.println("Error type 8: FLOAT return type is not match");
+                            if(!type.equals("float")){  
+                                int line = temp.stmt().exp().FLOAT().getSymbol().getLine();  
+                                System.err.println("Error type 8 at Line " + line + ": FLOAT return type is not match");
                             }
                         }
                         else if(temp.stmt().exp().CHAR() != null){
-                            if(!type.equals("char")){
-                                System.err.println("Error type 8: CHAR return type is not match");
+                            if(!type.equals("char")){    
+                                int line = temp.stmt().exp().CHAR().getSymbol().getLine();                          
+                                System.err.println("Error type 8 at Line " + line + ": CHAR return type is not match");
                             }
                         }
                     }
@@ -240,8 +248,9 @@ public void exitExtDef(splParser.ExtDefContext ctx) {
                             String stmtlist_name = temmp.exp().ID().getText();
                             String return_type = symbolTable.get(stmtlist_name);
                             // System.out.println("IN return" + stmtlist_name);
-                            if(!return_type.equals(type)){
-                                System.err.println("Error type 8: " + stmtlist_name + " " + return_type + " is not match");
+                            if(!return_type.equals(type)){   
+                                int line = temmp.exp().ID().getSymbol().getLine();                            
+                                System.err.println("Error type 8 at Line " + line + ": " + stmtlist_name + " " + return_type + " is not match");
                             }
                         }
                         // 如果返回的就是一个函数
@@ -250,8 +259,9 @@ public void exitExtDef(splParser.ExtDefContext ctx) {
                             String fun_Name = temmp.exp().ID().getText();
                             String fun_type = FunctionTable.get(fun_Name);
                             // System.out.println("IN return function" + fun_Name + " " + fun_type);
-                            if(fun_type!=null && !fun_type.equals(type)){
-                                System.err.println("Error type 8: " + fun_Name + " return type" + fun_type + " is not match");
+                            if(fun_type!=null && !fun_type.equals(type)){   
+                                int line = temmp.exp().ID().getSymbol().getLine();                            
+                                System.err.println("Error type 8 at Line " + line + ": " + fun_Name + " return type" + fun_type + " is not match");
                             }
                         }
                         else{
@@ -259,18 +269,21 @@ public void exitExtDef(splParser.ExtDefContext ctx) {
                             //如果返回的是整数类型...
                             if(temmp.exp().INT() != null){
                                 if(!type.equals("int")){
-                                    // System.out.println("这个函数的type是" + type);
-                                    System.err.println("Error type 8: INT return type is not match");
+                                    // System.out.println("这个函数的type是" + type);   
+                                    int line = temmp.exp().INT().getSymbol().getLine();                                
+                                    System.err.println("Error type 8 at Line " + line + ": INT return type is not match");
                                 }
                             }
                             else if(temmp.exp().FLOAT() != null){
                                 if(!type.equals("float")){
-                                    System.err.println("Error type 8: FLOAT return type is not match");
+                                    int line = temmp.exp().FLOAT().getSymbol().getLine();                            
+                                    System.err.println("Error type 8 at Line " + line + ": FLOAT return type is not match");
                                 }
                             }
                             else if(temmp.exp().CHAR() != null){
-                                if(!type.equals("char")){
-                                    System.err.println("Error type 8: CHAR return type is not match");
+                                if(!type.equals("char")){ 
+                                    int line = temmp.exp().CHAR().getSymbol().getLine();                                      
+                                    System.err.println("Error type 8 at Line " + line + ": CHAR return type is not match");
                                 }
                             }
                         }
@@ -290,8 +303,9 @@ public void exitExtDef(splParser.ExtDefContext ctx) {
             String funName = ctx.funDec().ID().getText();
             // String varName = ctx.ID().getText();
             // 检查变量是否已在符号表中
-            if (FunctionTable.containsKey(funName)) {
-                System.err.println("Error type 4: Function " + funName + " is redefined.");
+            if (FunctionTable.containsKey(funName)) {  
+                int line = ctx.funDec().ID().getSymbol().getLine();              
+                System.err.println("Error type 4 at Line " + line + ": Function " + funName + " is redefined.");
             } else {
                 // System.out.println(varName+" variable");
                 FunctionTable.put(funName, type);
@@ -312,8 +326,9 @@ public void parse_temp_mul_list(List<splParser.StmtContext> temp_mul_list, Strin
                 String stmtlist_name = temmp_mul.exp().ID().getText();
                 String return_type = symbolTable.get(stmtlist_name);
                 // System.out.println("IN return" + stmtlist_name);
-                if(!return_type.equals(type)){
-                    System.err.println("Error type 8: " + stmtlist_name + " " + return_type + " is not match");
+                if(!return_type.equals(type)){  
+                    int line = temmp_mul.exp().ID().getSymbol().getLine();              
+                    System.err.println("Error type 8 at Line " + line + ": " + stmtlist_name + " " + return_type + " is not match");
                 }
             }
             // 如果返回的就是一个函数
@@ -322,8 +337,9 @@ public void parse_temp_mul_list(List<splParser.StmtContext> temp_mul_list, Strin
                 String fun_Name = temmp_mul.exp().ID().getText();
                 String fun_type = FunctionTable.get(fun_Name);
                 // System.out.println("IN return function" + fun_Name + " " + fun_type);
-                if(fun_type!=null && !fun_type.equals(type)){
-                    System.err.println("Error type 8: " + fun_Name + " return type" + fun_type + " is not match");
+                if(fun_type!=null && !fun_type.equals(type)){   
+                    int line = temmp_mul.exp().ID().getSymbol().getLine();                
+                    System.err.println("Error type 8 at Line " + line + ": " + fun_Name + " return type" + fun_type + " is not match");
                 }
             }
             else{
@@ -331,18 +347,21 @@ public void parse_temp_mul_list(List<splParser.StmtContext> temp_mul_list, Strin
                 //如果返回的是整数类型...
                 if(temmp_mul.exp().INT() != null){
                     if(!type.equals("int")){
-                        // System.out.println("这个函数的type是" + type);
-                        System.err.println("Error type 8: INT return type is not match");
+                        // System.out.println("这个函数的type是" + type);  
+                        int line =  temmp_mul.exp().INT().getSymbol().getLine();                   
+                        System.err.println("Error type 8 at Line " + line + ": INT return type is not match");
                     }
                 }
                 else if(temmp_mul.exp().FLOAT() != null){
-                    if(!type.equals("float")){
-                        System.err.println("Error type 8: FLOAT return type is not match");
+                    if(!type.equals("float")){    
+                        int line = temmp_mul.exp().FLOAT().getSymbol().getLine();                   
+                        System.err.println("Error type 8 at Line " + line + ": FLOAT return type is not match");
                     }
                 }
                 else if(temmp_mul.exp().CHAR() != null){
-                    if(!type.equals("char")){
-                        System.err.println("Error type 8: CHAR return type is not match");
+                    if(!type.equals("char")){ 
+                        int line = temmp_mul.exp().CHAR().getSymbol().getLine();                       
+                        System.err.println("Error type 8 at Line " + line + ": CHAR return type is not match");
                     }
                 }
             }
@@ -359,6 +378,7 @@ public void parse_temp_mul_list(List<splParser.StmtContext> temp_mul_list, Strin
 
 @Override
 public void exitSpecifier(splParser.SpecifierContext ctx) {
+    int line = ctx.getStart().getLine();
     //如果他是一个结构体 而且是处在定义阶段
     if(ctx.structSpecifier() != null && ctx.structSpecifier().LC()!=null){
         // 如果没有定义这个结构体就把他的id加入到结构体名字的map中
@@ -416,7 +436,7 @@ public void exitSpecifier(splParser.SpecifierContext ctx) {
             }
         }
         else{
-            System.err.println("Error type 15: This struct "+ struct_name + " is redefined as same structure type " );
+            System.err.println("Error type 15 at Line " + line + ": This struct "+ struct_name + " is redefined as same structure type " );
         }
     }
 }
@@ -424,6 +444,7 @@ public void exitSpecifier(splParser.SpecifierContext ctx) {
 
 @Override
 public void exitExp(splParser.ExpContext ctx) {
+    int line = ctx.getStart().getLine();
     if (ctx.INT() != null) {
         expTypesMap.put(ctx, "int");
         return;
@@ -437,38 +458,38 @@ public void exitExp(splParser.ExpContext ctx) {
     // check if the types of child exps are matched
     if (ctx.exp() != null) {
         if (ctx.ASSIGN() != null) {
-            if (!expTypesMap.get(ctx.exp(0)).equals(expTypesMap.get(ctx.exp(1)))) {
-                System.err.println("Error type 5: unmatched type for on both sides of assignment for " + ctx.getText());
+            if (!expTypesMap.get(ctx.exp(0)).equals(expTypesMap.get(ctx.exp(1)))) {              
+                System.err.println("Error type 5 at Line " + line + ": unmatched type for on both sides of assignment for " + ctx.getText());
                 expTypesMap.put(ctx, "wrong exp");
             } else if (expTypesMap.get(ctx.exp(0)).equals("wrong exp")) {
-                System.err.println("Error type 5: unmatched type for on both sides of assignment for " + ctx.getText());
+                System.err.println("Error type 5 at Line " + line + ": unmatched type for on both sides of assignment for " + ctx.getText());
                 expTypesMap.put(ctx, "wrong exp");
             } else {
                 expTypesMap.put(ctx, expTypesMap.get(ctx.exp(0)));
             }
             if ((ctx.exp(0).ID() == null && ctx.exp(0).LB() == null) ||
-                    (ctx.exp(0).ID() != null && ctx.exp(0).LP() != null)) {
-                System.err.println("Error type 6: rvalue appears on the left-side of assignment");
-                expTypesMap.put(ctx, "wrong exp");
+                    (ctx.exp(0).ID() != null && ctx.exp(0).LP() != null)) {                    
+                        System.err.println("Error type 6 at Line " + line + ": rvalue appears on the left-side of assignment");
+                        expTypesMap.put(ctx, "wrong exp");
             }
         } else if (ctx.exp(1) != null) {
             // +, -, *, /, !=, ==, >, >=, <, <=, &&, ||, exp[exp]
             if (ctx.LB() == null) {
                 // exp[exp] is handled below
-                if (!expTypesMap.get(ctx.exp(0)).equals(expTypesMap.get(ctx.exp(1)))) {
-                    System.err.println("Error type 7: binary operation on unmatched variables in " + ctx.getText());
+                if (!expTypesMap.get(ctx.exp(0)).equals(expTypesMap.get(ctx.exp(1)))) {                   
+                    System.err.println("Error type 7 at Line " + line + ": binary operation on unmatched variables in " + ctx.getText());
                     expTypesMap.put(ctx, "wrong exp");
                 } else if (expTypesMap.get(ctx.exp(0)).equals("wrong exp")) {
-                    System.err.println("Error type 7: binary operation on unmatched variables in " + ctx.getText());
+                    System.err.println("Error type 7 at Line " + line + ": binary operation on unmatched variables in " + ctx.getText());
                     expTypesMap.put(ctx, "wrong exp");
-                } else if (!expTypesMap.get(ctx.exp(0)).equals("int") && !expTypesMap.get(ctx.exp(0)).equals("float")) {
-                    System.err.println("Error type 7: " + expTypesMap.get(ctx.exp(0)) + " cannot be calculated");
+                } else if (!expTypesMap.get(ctx.exp(0)).equals("int") && !expTypesMap.get(ctx.exp(0)).equals("float")) {                 
+                    System.err.println("Error type 7 at Line " + line + ": " + expTypesMap.get(ctx.exp(0)) + " cannot be calculated");
                     expTypesMap.put(ctx, "wrong exp");
                 } else {
                     // &&, ||
                     if (ctx.AND() != null || ctx.OR() != null) {
                         if (!expTypesMap.get(ctx.exp(0)).equals("int")) {
-                            System.err.println("Error type 7: float cannot do boolean operations");
+                            System.err.println("Error type 7 at Line " + line + ": float cannot do boolean operations");
                             expTypesMap.put(ctx, "wrong exp");
                         } else {
                             // correct ctx
@@ -478,20 +499,20 @@ public void exitExp(splParser.ExpContext ctx) {
                         // correct ctx
                         expTypesMap.put(ctx, expTypesMap.get(ctx.exp(0)));
                     }
-                }
+                }  
             }
         } else {
             // (exp), !exp, -exp
             if (ctx.NOT() != null) {
                 if (!expTypesMap.get(ctx.exp(0)).equals("int")) {
-                    System.err.println("Error type 7: float cannot do boolean operations");
+                    System.err.println("Error type 7 at Line " + line + ": float cannot do boolean operations");
                     expTypesMap.put(ctx, "wrong exp");
                 } else {
                     expTypesMap.put(ctx, expTypesMap.get(ctx.exp(0)));
                 }
             } else if (ctx.MINUS() != null) {
                 if (!expTypesMap.get(ctx.exp(0)).equals("int") && !expTypesMap.get(ctx.exp(0)).equals("float")) {
-                    System.err.println("Error type 7: " + expTypesMap.get(ctx.exp(0)) + " cannot be calculated");
+                    System.err.println("Error type 7 at Line " + line + ": " + expTypesMap.get(ctx.exp(0)) + " cannot be calculated");
                     expTypesMap.put(ctx, "wrong exp");
                 }
                 else {
@@ -509,17 +530,17 @@ public void exitExp(splParser.ExpContext ctx) {
             String fun_Name = ctx.ID().getText();
             //System.out.println("in a function judge");
             if(!FunctionTable.containsKey(fun_Name)){
-                if(symbolTable.containsKey(fun_Name)){
-                    System.err.println("Error type 11: Applying function invocation operator on non-function name " + fun_Name + ".");
-                }else{
-                    System.err.println("Error type 2: "+fun_Name +" is invoked without a definition");
+                if(symbolTable.containsKey(fun_Name)){                  
+                    System.err.println("Error type 11 at Line " + line + ": Applying function invocation operator on non-function name " + fun_Name + ".");
+                }else{                
+                    System.err.println("Error type 2 at Line " + line + ": "+fun_Name +" is invoked without a definition");
                 }
             } else {
                 // check whether the args of function are correct
                 List<String> argsTypes = funcArgsTypeMap.get(fun_Name);
                 if (ctx.args() == null) {
-                    if (!argsTypes.isEmpty()) {
-                        System.err.println("Error type 9: function \"" + fun_Name + "\"’s arguments expect arguments, but got none");
+                    if (!argsTypes.isEmpty()) {                     
+                        System.err.println("Error type 9 at Line " + line + ": function \"" + fun_Name + "\"’s arguments expect arguments, but got none");
                     }
                 } else {
                     splParser.ArgsContext tempArgs = ctx.args();
@@ -533,14 +554,15 @@ public void exitExp(splParser.ExpContext ctx) {
                             } else {
                                 break;
                             }
-                        } else {
-                            System.err.println("Error type 9: function \"" + fun_Name + "\"’s arguments mismatch the declared parameters 2");
+                        } else {                        
+                            System.err.println("Error type 9 at Line " + line + ": function \"" + fun_Name + "\"’s arguments mismatch the declared parameters 2");
                             correctMatched = false;
                             break;
                         }
                     }
                     if (correctMatched && !(cnt == argsTypes.size() && tempArgs.args() == null)) {
-                        System.err.println("Error type 9: function \"" + fun_Name + "\"’s arguments mismatch the declared parameters");
+                      
+                        System.err.println("Error type 9 at Line " + line + ": function \"" + fun_Name + "\"’s arguments mismatch the declared parameters");
                     }
                 }
                 // value is the return type of the function
@@ -560,7 +582,7 @@ public void exitExp(splParser.ExpContext ctx) {
                     splParser.ExpContext temp = ctx;
                     String temp_name = id_name;
                     if(!symbolTable.containsKey(id_name)){
-                        String symbol_type = findInStruct(id_name, ctx);
+                        String symbol_type = findInStruct(id_name, ctx, line);
                         if (!symbol_type.isEmpty()) {
                             expTypesMap.put(ctx, symbol_type);
                         } else {
@@ -600,7 +622,8 @@ public void exitExp(splParser.ExpContext ctx) {
             // 普通检查变量是否已经定义
             else{
                 if (!symbolTable.containsKey(var_Name)) {
-                    System.err.println("Error type 1: " + var_Name + " is used before definition.");
+                 
+                    System.err.println("Error type 1 at Line " + line + ": " + var_Name + " is used before definition.");
                 }
                 else {
                     // value is the data type of identifier
@@ -622,7 +645,8 @@ public void exitExp(splParser.ExpContext ctx) {
             depth++;
             if (temp_exp.LB() == null) {
                 // e.g. (arr + 3)[2], (arr[a] + 2)[1]
-                System.err.println("Error type 10 : Applying indexing operator on non-array type variables");
+             
+                System.err.println("Error type 10 at Line " + line + " : Applying indexing operator on non-array type variables");
                 expTypesMap.put(ctx, "wrong exp");
                 break;
             }
@@ -633,7 +657,8 @@ public void exitExp(splParser.ExpContext ctx) {
             }
             if (temp_exp.exp(0) == null) {
                 // this is when temp_exp cannot produce exp[exp] (or even (exp + exp), -exp). e.g. temp_exp is 3
-                System.err.println("Error type 10 : Applying indexing operator on non-array type variables");
+              
+                System.err.println("Error type 10 at Line " + line + " : Applying indexing operator on non-array type variables");
                 expTypesMap.put(ctx, "wrong exp");
                 break;
             }
@@ -651,7 +676,8 @@ public void exitExp(splParser.ExpContext ctx) {
             }
             // System.out.println(depth);
             if (depth > originDimension) {
-                System.err.println("Error type 10 : Applying indexing operator on non-array type variables");
+              
+                System.err.println("Error type 10 at Line " + line + " : Applying indexing operator on non-array type variables");
                 expTypesMap.put(ctx, "wrong exp");
             } else {
                 int cnt = 0;
@@ -679,13 +705,14 @@ public void exitExp(splParser.ExpContext ctx) {
         
         // 判断索引表达式的类型是否是整数
         if (indexExp != null && !expTypesMap.get(indexExp).equals("int")) {
-            System.err.println("Error type 12 : Array index is not an integer");
+        
+            System.err.println("Error type 12 at Line " + line + " : Array index is not an integer");
             expTypesMap.put(ctx, "wrong exp");
         }
     }
 }
 
-private String findInStruct(String id_name, splParser.ExpContext exp_ctx) {
+private String findInStruct(String id_name, splParser.ExpContext exp_ctx, int line) {
     String struct_name = "";
     splParser.ExpContext father_exp;
     String father_name;
@@ -703,8 +730,8 @@ private String findInStruct(String id_name, splParser.ExpContext exp_ctx) {
         // if(temp_exp.ID()!=null){
         //     String varType = symbolTable.get(temp_exp.ID().getText()); // 从符号表中获取变量类型
         //     struct_name = input.replaceAll("[^a-zA-Z]", ""); 
-        // }
-        System.err.println("Error type 13: accessing members of a non-structure variable.");
+        // }    
+        System.err.println("Error type 13 at Line " + line + ": accessing members of a non-structure variable.");
         return "";
     }else{
         father_exp = exp_ctx.exp(0);
@@ -714,7 +741,7 @@ private String findInStruct(String id_name, splParser.ExpContext exp_ctx) {
     // System.out.println(father_name+" "+id_name);
     
     if(!symbolTable.containsKey(father_name)){
-        struct_name = findInStruct(father_name, father_exp);
+        struct_name = findInStruct(father_name, father_exp, line);
     }else{
         struct_name = symbolTable.get(father_name);
     }
@@ -722,11 +749,11 @@ private String findInStruct(String id_name, splParser.ExpContext exp_ctx) {
     if(struct_name.equals("")){
         return "";
     }
-    if(correspond_symbolTable == null){
-        System.err.println("Error type 13: accessing members of a non-structure variable "+father_name+".");
+    if(correspond_symbolTable == null){    
+        System.err.println("Error type 13 at Line " + line + ": accessing members of a non-structure variable "+father_name+".");
         return "";
-    }else if(!correspond_symbolTable.containsKey(id_name)){
-        System.err.println("Error type 14: accessing an undefined structure member.");
+    }else if(!correspond_symbolTable.containsKey(id_name)){    
+        System.err.println("Error type 14 at Line " + line + ": accessing an undefined structure member.");
         return "";
     }else{
         return correspond_symbolTable.get(id_name);
