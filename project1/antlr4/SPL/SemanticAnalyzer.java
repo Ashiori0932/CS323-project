@@ -683,6 +683,14 @@ public void exitExp(splParser.ExpContext ctx) {
         if (temp_exp.ID() != null) {
             String varType = symbolTable.get(temp_exp.ID().getText()); // 从符号表中获取变量类型
             // System.out.println(temp_exp.ID().getText() + " " + varType);
+            if(varType==null){
+                varType = findInStruct(temp_exp.ID().getText(), temp_exp, line);
+                if (!varType.isEmpty()) {
+                    expTypesMap.put(temp_exp, varType);
+                } else {
+                    expTypesMap.put(temp_exp, "wrong exp");
+                }
+            }
             int originDimension = 0;
             for (int i = 0; i < varType.length(); i++) {
                 if (varType.charAt(i) == '[') {
@@ -750,6 +758,9 @@ private String findInStruct(String id_name, splParser.ExpContext exp_ctx, int li
         return "";
     }else{
         father_exp = exp_ctx.exp(0);
+        while(father_exp.ID()==null && father_exp.RB()!= null){
+            father_exp = father_exp.exp(0);
+        }
         father_name = father_exp.ID().getText();
     }
 
@@ -760,6 +771,7 @@ private String findInStruct(String id_name, splParser.ExpContext exp_ctx, int li
     }else{
         struct_name = symbolTable.get(father_name);
     }
+    struct_name = struct_name.replaceAll("[^a-zA-Z]", "");
     Map<String, String> correspond_symbolTable = structSymbolTables.get(struct_name);
     if(struct_name.equals("")){
         return "";
