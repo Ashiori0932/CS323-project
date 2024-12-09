@@ -42,11 +42,11 @@ grun SPL.spl program -tree ./test/test03.spl
  
 | r1  | r2  | r3  | r4  | r5 | r6 | r7 | r8  | r9 | r10 | r11 | r12 |
 |-----|-----|-----|-----|----|----|----|-----|----|-----|-----|-----|
-| F   | T   | T   | T   | T  | T  | T  | T   | T  | T   | F   | T   |
+| T   | T   | T   | T   | T  | T  | T  | T   | T  | T   | T   | T   |
 
 | r13  | r14 | r15  |
 |------|-----|------|
-| F    | T   | F    | 
+| T    | T   | F    | 
 
 
 ## Test2 测试情况
@@ -57,4 +57,4 @@ grun SPL.spl program -tree ./test/test03.spl
 
 | r13  | r14 | r15  |
 |------|-----|------|
-| F    | T   | T    | 
+| T    | T   | T    | 
