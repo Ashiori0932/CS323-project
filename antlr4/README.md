@@ -18,7 +18,7 @@ alias grun='java org.antlr.v4.runtime.misc.TestRig'
 ## 生成Lexer和Parser
 
 ```
-antlr4 SPL/spl.g4
+antlr4 -visitor SPL/spl.g4 
 ```
 
 ## 编译ANTLR 生成的Java文件
