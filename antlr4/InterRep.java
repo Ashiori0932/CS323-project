@@ -6,13 +6,29 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Stack;
 
+// define v_i -> READ
+// define t_i -> other definition
+
 public class InterRep extends splBaseVisitor<String> {
     private List<String> code = new ArrayList<>(); // 存储生成的三地址码
     private Map<String, String> symbolTable = new HashMap<>(); // 符号表
+    private Map<String, String> functionTable = new HashMap<>(); // 函数表
     private int tempCount = 1;
+    private int readCount = 1;
+    private int labelCount = 1;
 
     private String newTemp() {
         return "t" + (tempCount++);
+    }
+    private String newRead() {
+        return "v" + (readCount++);
+    }
+    private String newLabel(){
+        return "GOTO label" + (labelCount++);
+    }
+    
+    private String get_labels(int label_count){
+        return "LABEL label" + label_count + " :";
     }
 
     // 添加三地址码指令
@@ -37,18 +53,50 @@ public class InterRep extends splBaseVisitor<String> {
         if (ctx.extDef() != null){
             visitExtDef(ctx.extDef());
         }
+        if(ctx.extDefList()!=null){
+            visitExtDefList(ctx.extDefList());
+        }
         return null;
     }
 
     @Override
     public String visitExtDef(splParser.ExtDefContext ctx) {
-        
+        if (ctx.funDec() != null){
+            visitFunDec(ctx.funDec());
+        }
         if (ctx.compSt() != null) {
             visitCompSt(ctx.compSt());
+        }
+        else if(ctx.extDecList()!=null){
+            visitExtDecList(ctx.extDecList());
         }
         return null;
     }
 
+    @Override 
+    public String visitExtDecList(splParser.ExtDecListContext ctx){
+        if(ctx.varDec()!=null){
+            visitVarDec(ctx.varDec());
+        }
+        if(ctx.extDecList()!=null){
+            visitExtDecList(ctx.extDecList());
+        }
+        return null;
+    }
+
+    @Override
+    public String visitFunDec(splParser.FunDecContext ctx){
+        if(ctx.ID()!=null){
+            String fun_name = ctx.ID().getText();
+            // 将函数名
+            functionTable.put(fun_name, fun_name);
+            emit("FUNCTION " +fun_name+ " :");
+        }
+        if(ctx.varList()!=null){
+            visitVarList(ctx.varList());
+        }
+        return null;
+    }
 
     @Override
     public String visitCompSt(splParser.CompStContext ctx) {
@@ -91,65 +139,257 @@ public class InterRep extends splBaseVisitor<String> {
         if (ctx.dec() != null) {
             visitDec(ctx.dec());
         }
+        if(ctx.decList()!=null){
+            visitDecList(ctx.decList());
+        }
+        return null;
+    }
+
+    @Override
+    public String visitVarList(splParser.VarListContext ctx){
+        if(ctx.paramDec()!=null){
+            visitParamDec(ctx.paramDec());
+        }
+        if(ctx.varList()!=null){
+            visitVarList(ctx.varList());
+        }
+        return null;
+    }
+
+    @Override
+    public String visitVarDec(splParser.VarDecContext ctx){
+        if(ctx.ID()!=null){
+            // todo
+            String temp = newTemp();
+            symbolTable.put(ctx.ID().getText(), temp); // 存入符号表
+            return temp;
+        }
+        else if(ctx.varDec()!=null){
+            visitVarDec(ctx.varDec());
+        }
+        return null;
+    }
+
+    @Override
+    public String visitParamDec(splParser.ParamDecContext ctx){
+        if(ctx.varDec()!=null){
+            // 这里已经转化为t_i形式了
+            String var_name = visitVarDec(ctx.varDec());
+            // String tempp = symbolTable.get(var_name);
+            emit("PARAM " + var_name);
+        }
         return null;
     }
 
     @Override
     public String visitDec(splParser.DecContext ctx) {
-        
         if (ctx.ASSIGN() != null) {
             
             // 变量赋值声明，例如 int a = 5;
             
-            String varName = ctx.varDec().getText();
+            String temp = visitVarDec(ctx.varDec());
+
+            // String varName = ctx.varDec().getText();
             String value = visitExp(ctx.exp());
-            symbolTable.put(varName, varName); // 存入符号表
-            emit(varName + " := " + value);
+            // String temp = newTemp();
+            // symbolTable.put(varName, temp); // 存入符号表
+            emit(temp + " := " + value);
         } else {
-            // 单独的变量声明，例如 int a;
-            String varName = ctx.varDec().getText();
-            symbolTable.put(varName, varName);
-            emit(varName + " := #0"); // 默认初始化为0
+            // 单独的变量声明，例如 int a; 如果只是单个定义不需要打印输出
+            // String varName = visitVarDec(ctx.varDec());
+            // System.out.println("var name is " + varName);
+            // String varName = ctx.varDec().getText();
+            // String temp = newTemp();
+            // symbolTable.put(varName, temp);
+            // emit(temp + " := #0"); // 默认初始化为0
+        }
+        return null;
+    }
+
+    @Override
+    public String visitStmtList(splParser.StmtListContext ctx){
+        if(ctx.stmt()!=null){
+            visitStmt(ctx.stmt());
+        }
+        if(ctx.stmtList()!=null){
+            visitStmtList(ctx.stmtList());
         }
         return null;
     }
 
     @Override
     public String visitStmt(splParser.StmtContext ctx) {
-        if (ctx.exp() != null) {
-            // 处理表达式语句，例如 a = b + c;
-            visitExp(ctx.exp());
-        } else if (ctx.RETURN() != null) {
+        ArrayList<String> end_label = new ArrayList<>();
+        if(ctx.compSt()!=null){
+            visitCompSt(ctx.compSt());
+        }
+        else if (ctx.RETURN() != null) {
             // 处理返回语句
             String returnValue = visitExp(ctx.exp());
             emit("RETURN " + returnValue);
+            return null;
+        } 
+        else if(ctx.IF()!=null){
+            //IF
+            if(ctx.exp()!=null){
+                String new_label = newLabel();
+                emit("IF " + visitExp(ctx.exp()) + " " + new_label);
+                String new_Goto_label = newLabel();
+                emit(new_Goto_label);
+                emit(get_labels(labelCount - 2));
+                if(ctx.stmt()!=null){
+                    List<splParser.StmtContext> stmt_list = ctx.stmt();
+                    // 如果是包含else的
+                    if(stmt_list.size() == 2){
+                        visitStmt(stmt_list.get(0));
+                        // 遍历完每个stmt创建一个跳转的label
+                        String temp_label = newLabel();
+                        emit(temp_label);
+                        // 将需要在结束时候输入的东西现在全部加入一个end_label数组
+                        end_label.add(get_labels(labelCount - 1));
+                        emit(get_labels(labelCount - 2));
+                        visitStmt(stmt_list.get(1));
+                    }
+                    else{
+                        visitStmt(stmt_list.get(0));
+                    }
+                }
+                // 添加一个入口
+                // emit("LABEL label" + (labelCount - 2));
+            }
+            for (String label : end_label) {
+                // System.out.println("Label 有 " + label);
+                emit(label);
+            }
+        }
+        else if (ctx.WHILE()!=null){
+            // todo
+        }
+        else if (ctx.exp() != null) {
+            // 处理表达式语句，例如 a = b + c;
+            visitExp(ctx.exp());
         }
         return null;
     }
 
     @Override
     public String visitExp(splParser.ExpContext ctx) {
-        if (ctx.getChildCount() == 3) {
+        // deal with READ
+        if(ctx != null && ctx.ID()!=null && ctx.ID().getText().equals("read")){
+            String readtemp = newRead();
+            emit("READ " + readtemp);
+            return "READ" + readtemp;
+        }
+        // write LP ARGS RP
+        else if(ctx != null && ctx.ID()!=null && (ctx.ID().getText().equals("write")||functionTable.containsKey(ctx.ID().getText()))){
+            // System.out.println("Find write");
+            if(ctx.ID().getText().equals("write") && ctx.args()!=null){
+                emit("WRITE " + visitArgs(ctx.args()));
+                return null;
+            }
+            else if(ctx.args()!=null){
+                visitArgs(ctx.args());
+            }
+            return "CALL " + ctx.ID().getText();
+        }
+        // ID LP ARGS RP
+        // if (ctx != null && ctx.getChildCount() == 4 ) {
+        //     if(ctx.args()!=null){
+        //         visitArgs(ctx.args());
+        //     }
+        // }
+        else if (ctx != null && ctx.getChildCount() == 3) {
             // 处理二元运算，例如 a + b, a = b
-            String left = visitExp(ctx.exp(0));
             String right = visitExp(ctx.exp(1));
+            if(right == null){
+                return visitExp(ctx.exp(0));
+            }
+            String left = visitExp(ctx.exp(0));
+            // System.out.println("left is " + left + " right is " + right);
+            //如果是read的exp三元组，就将之前read传过来的变量名进行预处理
+            if(right.contains("READ")){
+                // System.out.println("left is " + left);
+                // System.out.println("right is " + right);
+
+                emit(left + " := " + right.replaceFirst("READ", ""));
+                // symbolTable.put(left, right.replaceFirst("READ", ""));
+                return null;
+            }
             String op = ctx.getChild(1).getText(); // 操作符 (+, -, *, /, = 等)
-            if ("=".equals(op)) {
+            // System.out.println("op is " + op);
+            if (left !=null && right !=null && "=".equals(op)) {
                 emit(left + " := " + right);
                 return left;
-            } else {
+            }else if(left !=null && right !=null &&"<".equals(op)){ 
+                return left + " < " + right;
+            }else if(left !=null && right !=null &&">".equals(op)){ 
+                return left + " > " + right;
+            }else if(left !=null && right !=null &&"==".equals(op)){ 
+                return left + " == " + right;
+            }else if(left !=null && right !=null &&"==".equals(op)){ 
+                return left + " >= " + right;
+            }else if(left !=null && right !=null &&"==".equals(op)){ 
+                return left + " <= " + right;
+            }else if(left !=null && right !=null &&"==".equals(op)){ 
+                return left + " != " + right;
+            }
+            else if(left !=null && right !=null ){
                 String temp = newTemp();
                 emit(temp + " := " + left + " " + op + " " + right);
                 return temp;
             }
-        } else if (ctx.getChildCount() == 1) {
+        } 
+        else if (ctx != null && ctx.getChildCount() == 2) {
+            // 处理单个变量或常量
+            // -a
+            if(ctx.MINUS()!=null){
+                String expp = visitExp(ctx.exp(0));
+                String expp_temp = newTemp();
+                emit(expp_temp + " := " + "#0" + " - " + expp);
+                return expp_temp;
+            }
+            else if (ctx.NOT()!=null){
+                String expp = visitExp(ctx.exp(0));
+                String expp_temp = newTemp();
+                emit(expp_temp + " := " + "NOT " + expp);
+                return expp_temp;
+            }
+        }
+        //TODO: 参考spl.g4扩展到更多
+        else if (ctx != null && ctx.getChildCount() == 1) {
             // 处理单个变量或常量
             String text = ctx.getText();
             if (symbolTable.containsKey(text)) {
-                return text; // 如果是变量，返回变量名
+                // System.out.println("get key " + symbolTable.get(text));
+                return symbolTable.get(text); // 如果是变量，返回corresponding name e.x.t1
             } else {
-                return "#" + text; // 如果是常量，直接返回值
+                // System.out.println("!!!");
+                boolean is_digit = true;
+                for (char c : text.toCharArray()) {
+                    if (!Character.isDigit(c)) {
+                        is_digit = false; // 如果遇到非数字字符，返回 false
+                    }
+                }
+                String temp = newTemp();
+                if (is_digit) {
+                    // System.out.println("TEXT is " + text);
+                    emit(temp + " := " + "#" + text);
+                }
+                else{
+                    symbolTable.put(text, temp);
+                }
+                return temp;
             }
+        }
+        return null;
+    }
+
+    @Override 
+    public String visitArgs(splParser.ArgsContext ctx){
+        if(ctx.exp()!=null){
+            String tempp = visitExp(ctx.exp());
+            emit("ARG " + tempp);
+            return tempp;
         }
         return null;
     }
