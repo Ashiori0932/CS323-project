@@ -72,7 +72,7 @@ antlr4 -visitor -no-listener spl.g4
 2. 
 ```
 cd ..
-javac spl/*.java
+javac SPL/*.java
 ```
 
 3.
