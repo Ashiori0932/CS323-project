@@ -354,14 +354,13 @@ public class InterRep extends splBaseVisitor<String> {
                 return left + " > " + right;
             }else if(left !=null && right !=null &&"==".equals(op)){ 
                 return left + " == " + right;
-            }else if(left !=null && right !=null &&"==".equals(op)){ 
+            }else if(left !=null && right !=null &&">=".equals(op)){ 
                 return left + " >= " + right;
-            }else if(left !=null && right !=null &&"==".equals(op)){ 
+            }else if(left !=null && right !=null &&"<=".equals(op)){ 
                 return left + " <= " + right;
-            }else if(left !=null && right !=null &&"==".equals(op)){ 
+            }else if(left !=null && right !=null &&"!=".equals(op)){ 
                 return left + " != " + right;
-            }
-            else if(left !=null && right !=null ){
+            }else if(left !=null && right !=null ){
                 String temp = newTemp();
                 emit(temp + " := " + left + " " + op + " " + right);
                 return temp;
