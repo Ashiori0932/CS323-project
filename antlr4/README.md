@@ -85,7 +85,7 @@ javac main.java && java main
 
 | r1  | r2  | r3  | r4  | r5 | r6 | r7 | r8  | r9 | r10 |
 |-----|-----|-----|-----|----|----|----|-----|----|-----|
-| T   | T   | F   | T   | F  | F  | F  | F   | F  | T   |
+| T   | T   | T   | T   | F  | F  | F  | F   | F  | T   |
 
 一些约定: 
 1. 在tutorial中没有数组以及struct的要求
@@ -95,8 +95,8 @@ javac main.java && java main
 5. WRITE, READ我们相当于一个函数在使用
 6. int a 如果没有进行赋值我们不用进行emit
 
-TODO:
-1. WHILE Label的摆放 参见test_3_r03.spl
-2. 其余label摆放的优化, 具体请见tutorial_3 page_14
-3. 根据spl.g4添加其他漏掉的访问方式
+TODO:  
+1. ~~WHILE Label的摆放 参见test_3_r03.spl~~  
+2. 其余label摆放的优化, 具体请见tutorial_3 page_14  
+3. 根据spl.g4添加其他漏掉的访问方式  
 4. 函数直接调用时候也需要CALL 参见test_3_r06.spl
