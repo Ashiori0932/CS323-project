@@ -24,11 +24,15 @@ public class InterRep extends splBaseVisitor<String> {
         return "v" + (readCount++);
     }
     private String newLabel(){
-        return "GOTO label" + (labelCount++);
+        return "label" + (labelCount++);
+    }
+
+    private String gotoLable(String label){
+        return "GOTO " + label;
     }
     
-    private String get_labels(int label_count){
-        return "LABEL label" + label_count + " :";
+    private String getLable(String label){
+        return "LABEL " + label + " :";
     }
 
     // 添加三地址码指令
@@ -233,10 +237,13 @@ public class InterRep extends splBaseVisitor<String> {
             //IF
             if(ctx.exp()!=null){
                 String new_label = newLabel();
-                emit("IF " + visitExp(ctx.exp()) + " " + new_label);
-                String new_Goto_label = newLabel();
-                emit(new_Goto_label);
-                emit(get_labels(labelCount - 2));
+                emit("IF " + visitExp(ctx.exp()) + " " + gotoLable(new_label));
+                String new_label2 = newLabel();
+                
+                String new_gotoLable = gotoLable(new_label2);
+                emit(new_gotoLable);
+                
+                emit(getLable(new_label));
                 if(ctx.stmt()!=null){
                     List<splParser.StmtContext> stmt_list = ctx.stmt();
                     // 如果是包含else的
@@ -244,14 +251,15 @@ public class InterRep extends splBaseVisitor<String> {
                         visitStmt(stmt_list.get(0));
                         // 遍历完每个stmt创建一个跳转的label
                         String temp_label = newLabel();
-                        emit(temp_label);
+                        emit(gotoLable(temp_label));
                         // 将需要在结束时候输入的东西现在全部加入一个end_label数组
-                        end_label.add(get_labels(labelCount - 1));
-                        emit(get_labels(labelCount - 2));
+                        end_label.add(getLable(temp_label));
+                        emit(getLable(new_label2));
                         visitStmt(stmt_list.get(1));
                     }
                     else{
                         visitStmt(stmt_list.get(0));
+                        emit(getLable(new_label2));
                     }
                 }
                 // 添加一个入口
@@ -263,7 +271,27 @@ public class InterRep extends splBaseVisitor<String> {
             }
         }
         else if (ctx.WHILE()!=null){
-            // todo
+            // 循环开始标签、循环结束标签、循环继续标签
+            String startLabel = newLabel();
+            String endLabel = newLabel();
+            String continueLabel = newLabel();
+            
+            emit(getLable(startLabel));
+
+            String condition = visitExp(ctx.exp()); // 循环条件
+            
+            emit("IF " + condition + " " + gotoLable(continueLabel)); // 如果条件符合，前往循环继续标签
+            emit(gotoLable(endLabel)); // 如果条件不符合，前往循环结束标签
+            emit(getLable(continueLabel));
+
+            // 循环体
+            if (ctx.stmt() != null) {
+                visitStmt(ctx.stmt().get(0));
+            }
+
+            // 循环体结束后前往循环开始标签
+            emit(gotoLable(startLabel));
+            emit(getLable(endLabel));
         }
         else if (ctx.exp() != null) {
             // 处理表达式语句，例如 a = b + c;
