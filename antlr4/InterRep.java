@@ -354,33 +354,62 @@ public class InterRep extends splBaseVisitor<String> {
 //            }
             String op = ctx.getChild(1).getText(); // 操作符 (+, -, *, /, = 等)
             // System.out.println("op is " + op);
-            if (left !=null && right !=null && "=".equals(op)) {
-//                if (ctx.exp(0).getChildCount() == 1 && ctx.exp(0).ID() != null) {
-//                    // since it must be "exp ASSIGN exp", we can use the same temp of right for left
-//                    symbolTable.put(ctx.exp(0).ID().getText(), right);
-//                    return right;
-//                } else {
-                    emit(left + " := " + right);
-                    return left;
-//                }
-            }
-            else if(left !=null && right !=null &&"<".equals(op)){
+            if (left !=null && "=".equals(op)) {
+                emit(left + " := " + right);
+                return left;
+            } else if (left !=null && "<".equals(op)) {
+                // if the parent is still exp
+                if (ctx.getParent().getClass().equals(splParser.ExpContext.class)) {
+                    String temp = newTemp();
+                    emit(temp + " := " + left + " " + op + " " + right);
+                    return temp;
+                }
                 return left + " < " + right;
-            }else if(left !=null && right !=null &&">".equals(op)){ 
+            } else if (left != null && ">".equals(op)) {
+                // if the parent is still exp
+                if (ctx.getParent().getClass().equals(splParser.ExpContext.class)) {
+                    String temp = newTemp();
+                    emit(temp + " := " + left + " " + op + " " + right);
+                    return temp;
+                }
                 return left + " > " + right;
-            }else if(left !=null && right !=null &&"==".equals(op)){
+            } else if (left != null && "==".equals(op)) {
+                // if the parent is still exp
+                if (ctx.getParent().getClass().equals(splParser.ExpContext.class)) {
+                    String temp = newTemp();
+                    emit(temp + " := " + left + " " + op + " " + right);
+                    return temp;
+                }
                 return left + " == " + right;
-            }else if(left !=null && right !=null &&">=".equals(op)){ 
+            } else if (left != null && ">=".equals(op)) {
+                // if the parent is still exp
+                if (ctx.getParent().getClass().equals(splParser.ExpContext.class)) {
+                    String temp = newTemp();
+                    emit(temp + " := " + left + " " + op + " " + right);
+                    return temp;
+                }
                 return left + " >= " + right;
-            }else if(left !=null && right !=null &&"<=".equals(op)){ 
+            } else if (left != null && "<=".equals(op)) {
+                // if the parent is still exp
+                if (ctx.getParent().getClass().equals(splParser.ExpContext.class)) {
+                    String temp = newTemp();
+                    emit(temp + " := " + left + " " + op + " " + right);
+                    return temp;
+                }
                 return left + " <= " + right;
-            }else if(left !=null && right !=null &&"!=".equals(op)){ 
+            } else if (left != null && "!=".equals(op)) {
+                // if the parent is still exp
+                if (ctx.getParent().getClass().equals(splParser.ExpContext.class)) {
+                    String temp = newTemp();
+                    emit(temp + " := " + left + " " + op + " " + right);
+                    return temp;
+                }
                 return left + " != " + right;
-            }else if(left !=null && right !=null ){
-                // if the parent is "exp ASSIGN exp"
+            } else if (left != null) {
+                // if the ctxExp is derived from: parentExp -> exp ASSIGN ctxExp
                 if (ctx.getParent().getClass().equals(splParser.ExpContext.class)) {
                     splParser.ExpContext parentExp = (splParser.ExpContext) ctx.getParent();
-                    if (parentExp.ASSIGN() != null) {
+                    if (parentExp.ASSIGN() != null && parentExp.exp(1).equals(ctx)) {
                         return left + " " + op + " " + right;
                     }
                 }
@@ -394,10 +423,10 @@ public class InterRep extends splBaseVisitor<String> {
             // -a
             if(ctx.MINUS()!=null){
                 String expp = visitExp(ctx.exp(0));
-                // if the parent is "exp ASSIGN exp"
+                // if the ctxExp is derived from: parentExp -> exp ASSIGN ctxExp
                 if (ctx.getParent().getClass().equals(splParser.ExpContext.class)) {
                     splParser.ExpContext parentExp = (splParser.ExpContext) ctx.getParent();
-                    if (parentExp.ASSIGN() != null) {
+                    if (parentExp.ASSIGN() != null && parentExp.exp(1).equals(ctx)) {
                         return "#0" + " - " + expp;
                     }
                 }
@@ -407,10 +436,10 @@ public class InterRep extends splBaseVisitor<String> {
             }
             else if (ctx.NOT()!=null){
                 String expp = visitExp(ctx.exp(0));
-                // if the parent is "exp ASSIGN exp"
+                // if the ctxExp is derived from: parentExp -> exp ASSIGN ctxExp
                 if (ctx.getParent().getClass().equals(splParser.ExpContext.class)) {
                     splParser.ExpContext parentExp = (splParser.ExpContext) ctx.getParent();
-                    if (parentExp.ASSIGN() != null) {
+                    if (parentExp.ASSIGN() != null && parentExp.exp(1).equals(ctx)) {
                         return "NOT " + expp;
                     }
                 }

@@ -3,6 +3,7 @@ int main() {
     b = (2 == 3);
     n = 0;
     n = n + 1;
+    (num = num + 1) = 5;
     if (a && b) n = 5;
     n = n + read();
     return n;

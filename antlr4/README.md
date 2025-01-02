@@ -85,7 +85,7 @@ javac main.java && java main
 
 | r1  | r2  | r3  | r4  | r5 | r6 | r7 | r8  | r9 | r10 |
 |-----|-----|-----|-----|----|----|----|-----|----|-----|
-| T   | T   | T   | T   | F  | F  | F  | F   | F  | T   |
+| T   | T   | T   | T   | T  | F  | F  | F   | F  | T   |
 
 一些约定: 
 1. 在tutorial中没有数组以及struct的要求
