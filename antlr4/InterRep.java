@@ -342,14 +342,8 @@ public class InterRep extends splBaseVisitor<String> {
 //                // System.out.println("right is " + right);
 //                if (ctx.ASSIGN() != null) {
 //                    // if it's assignment, e.g. n = read();
-//                    if (ctx.exp(0).getChildCount() == 1 && ctx.exp(0).ID() != null) {
-//                        // since it must be "exp ASSIGN exp", we can use the same temp of right for left
-//                        symbolTable.put(ctx.exp(0).ID().getText(), right);
-//                        return right;
-//                    } else {
-//                        emit(left + " := " + right.replaceFirst("READ", ""));
-//                        return null;
-//                    }
+//                    emit(left + " := " + right.replaceFirst("READ", ""));
+//                    return null;
 //                } else {
 //                    // not assignment
 //                    right = right.replaceFirst("READ", "");
@@ -361,14 +355,14 @@ public class InterRep extends splBaseVisitor<String> {
             String op = ctx.getChild(1).getText(); // 操作符 (+, -, *, /, = 等)
             // System.out.println("op is " + op);
             if (left !=null && right !=null && "=".equals(op)) {
-                if (ctx.exp(0).getChildCount() == 1 && ctx.exp(0).ID() != null) {
-                    // since it must be "exp ASSIGN exp", we can use the same temp of right for left
-                    symbolTable.put(ctx.exp(0).ID().getText(), right);
-                    return right;
-                } else {
+//                if (ctx.exp(0).getChildCount() == 1 && ctx.exp(0).ID() != null) {
+//                    // since it must be "exp ASSIGN exp", we can use the same temp of right for left
+//                    symbolTable.put(ctx.exp(0).ID().getText(), right);
+//                    return right;
+//                } else {
                     emit(left + " := " + right);
                     return left;
-                }
+//                }
             }
             else if(left !=null && right !=null &&"<".equals(op)){
                 return left + " < " + right;
@@ -383,6 +377,13 @@ public class InterRep extends splBaseVisitor<String> {
             }else if(left !=null && right !=null &&"!=".equals(op)){ 
                 return left + " != " + right;
             }else if(left !=null && right !=null ){
+                // if the parent is "exp ASSIGN exp"
+                if (ctx.getParent().getClass().equals(splParser.ExpContext.class)) {
+                    splParser.ExpContext parentExp = (splParser.ExpContext) ctx.getParent();
+                    if (parentExp.ASSIGN() != null) {
+                        return left + " " + op + " " + right;
+                    }
+                }
                 String temp = newTemp();
                 emit(temp + " := " + left + " " + op + " " + right);
                 return temp;
@@ -393,12 +394,26 @@ public class InterRep extends splBaseVisitor<String> {
             // -a
             if(ctx.MINUS()!=null){
                 String expp = visitExp(ctx.exp(0));
+                // if the parent is "exp ASSIGN exp"
+                if (ctx.getParent().getClass().equals(splParser.ExpContext.class)) {
+                    splParser.ExpContext parentExp = (splParser.ExpContext) ctx.getParent();
+                    if (parentExp.ASSIGN() != null) {
+                        return "#0" + " - " + expp;
+                    }
+                }
                 String expp_temp = newTemp();
                 emit(expp_temp + " := " + "#0" + " - " + expp);
                 return expp_temp;
             }
             else if (ctx.NOT()!=null){
                 String expp = visitExp(ctx.exp(0));
+                // if the parent is "exp ASSIGN exp"
+                if (ctx.getParent().getClass().equals(splParser.ExpContext.class)) {
+                    splParser.ExpContext parentExp = (splParser.ExpContext) ctx.getParent();
+                    if (parentExp.ASSIGN() != null) {
+                        return "NOT " + expp;
+                    }
+                }
                 String expp_temp = newTemp();
                 emit(expp_temp + " := " + "NOT " + expp);
                 return expp_temp;
