@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Stack;
 
 // define v_i -> READ
 // define t_i -> other definition
@@ -27,11 +26,11 @@ public class InterRep extends splBaseVisitor<String> {
         return "label" + (labelCount++);
     }
 
-    private String gotoLable(String label){
+    private String gotoLabel(String label){
         return "GOTO " + label;
     }
     
-    private String getLable(String label){
+    private String getLabel(String label){
         return "LABEL " + label + " :";
     }
 
@@ -168,9 +167,10 @@ public class InterRep extends splBaseVisitor<String> {
             symbolTable.put(ctx.ID().getText(), temp); // 存入符号表
             return temp;
         }
-        else if(ctx.varDec()!=null){
-            visitVarDec(ctx.varDec());
-        }
+        // not used because no arrays
+//        else if(ctx.varDec()!=null){
+//            visitVarDec(ctx.varDec());
+//        }
         return null;
     }
 
@@ -237,13 +237,13 @@ public class InterRep extends splBaseVisitor<String> {
             //IF
             if(ctx.exp()!=null){
                 String new_label = newLabel();
-                emit("IF " + visitExp(ctx.exp()) + " " + gotoLable(new_label));
+                emit("IF " + visitExp(ctx.exp()) + " " + gotoLabel(new_label));
                 String new_label2 = newLabel();
                 
-                String new_gotoLable = gotoLable(new_label2);
+                String new_gotoLable = gotoLabel(new_label2);
                 emit(new_gotoLable);
                 
-                emit(getLable(new_label));
+                emit(getLabel(new_label));
                 if(ctx.stmt()!=null){
                     List<splParser.StmtContext> stmt_list = ctx.stmt();
                     // 如果是包含else的
@@ -251,15 +251,15 @@ public class InterRep extends splBaseVisitor<String> {
                         visitStmt(stmt_list.get(0));
                         // 遍历完每个stmt创建一个跳转的label
                         String temp_label = newLabel();
-                        emit(gotoLable(temp_label));
+                        emit(gotoLabel(temp_label));
                         // 将需要在结束时候输入的东西现在全部加入一个end_label数组
-                        end_label.add(getLable(temp_label));
-                        emit(getLable(new_label2));
+                        end_label.add(getLabel(temp_label));
+                        emit(getLabel(new_label2));
                         visitStmt(stmt_list.get(1));
                     }
                     else{
                         visitStmt(stmt_list.get(0));
-                        emit(getLable(new_label2));
+                        emit(getLabel(new_label2));
                     }
                 }
                 // 添加一个入口
@@ -276,13 +276,13 @@ public class InterRep extends splBaseVisitor<String> {
             String endLabel = newLabel();
             String continueLabel = newLabel();
             
-            emit(getLable(startLabel));
+            emit(getLabel(startLabel));
 
             String condition = visitExp(ctx.exp()); // 循环条件
             
-            emit("IF " + condition + " " + gotoLable(continueLabel)); // 如果条件符合，前往循环继续标签
-            emit(gotoLable(endLabel)); // 如果条件不符合，前往循环结束标签
-            emit(getLable(continueLabel));
+            emit("IF " + condition + " " + gotoLabel(continueLabel)); // 如果条件符合，前往循环继续标签
+            emit(gotoLabel(endLabel)); // 如果条件不符合，前往循环结束标签
+            emit(getLabel(continueLabel));
 
             // 循环体
             if (ctx.stmt() != null) {
@@ -290,8 +290,8 @@ public class InterRep extends splBaseVisitor<String> {
             }
 
             // 循环体结束后前往循环开始标签
-            emit(gotoLable(startLabel));
-            emit(getLable(endLabel));
+            emit(gotoLabel(startLabel));
+            emit(getLabel(endLabel));
         }
         else if (ctx.exp() != null) {
             // 处理表达式语句，例如 a = b + c;
@@ -303,10 +303,12 @@ public class InterRep extends splBaseVisitor<String> {
     @Override
     public String visitExp(splParser.ExpContext ctx) {
         // deal with READ
-        if(ctx != null && ctx.ID()!=null && ctx.ID().getText().equals("read")){
+        if(ctx != null && ctx.ID()!=null && ctx.ID().getText().equals("read")) {
+
             String readtemp = newRead();
             emit("READ " + readtemp);
-            return "READ" + readtemp;
+//            return "READ" + readtemp;
+            return readtemp;
         }
         // write LP ARGS RP
         else if(ctx != null && ctx.ID()!=null && (ctx.ID().getText().equals("write")||functionTable.containsKey(ctx.ID().getText()))){
@@ -335,24 +337,44 @@ public class InterRep extends splBaseVisitor<String> {
             String left = visitExp(ctx.exp(0));
             // System.out.println("left is " + left + " right is " + right);
             //如果是read的exp三元组，就将之前read传过来的变量名进行预处理
-            if(right.contains("READ")){
-                // System.out.println("left is " + left);
-                // System.out.println("right is " + right);
-
-                emit(left + " := " + right.replaceFirst("READ", ""));
-                // symbolTable.put(left, right.replaceFirst("READ", ""));
-                return null;
-            }
+//            if(right.contains("READ")){
+//                // System.out.println("left is " + left);
+//                // System.out.println("right is " + right);
+//                if (ctx.ASSIGN() != null) {
+//                    // if it's assignment, e.g. n = read();
+//                    if (ctx.exp(0).getChildCount() == 1 && ctx.exp(0).ID() != null) {
+//                        // since it must be "exp ASSIGN exp", we can use the same temp of right for left
+//                        symbolTable.put(ctx.exp(0).ID().getText(), right);
+//                        return right;
+//                    } else {
+//                        emit(left + " := " + right.replaceFirst("READ", ""));
+//                        return null;
+//                    }
+//                } else {
+//                    // not assignment
+//                    right = right.replaceFirst("READ", "");
+//                }
+////                emit(left + " := " + right.replaceFirst("READ", ""));
+////                // symbolTable.put(left, right.replaceFirst("READ", ""));
+////                return null;
+//            }
             String op = ctx.getChild(1).getText(); // 操作符 (+, -, *, /, = 等)
             // System.out.println("op is " + op);
             if (left !=null && right !=null && "=".equals(op)) {
-                emit(left + " := " + right);
-                return left;
-            }else if(left !=null && right !=null &&"<".equals(op)){ 
+                if (ctx.exp(0).getChildCount() == 1 && ctx.exp(0).ID() != null) {
+                    // since it must be "exp ASSIGN exp", we can use the same temp of right for left
+                    symbolTable.put(ctx.exp(0).ID().getText(), right);
+                    return right;
+                } else {
+                    emit(left + " := " + right);
+                    return left;
+                }
+            }
+            else if(left !=null && right !=null &&"<".equals(op)){
                 return left + " < " + right;
             }else if(left !=null && right !=null &&">".equals(op)){ 
                 return left + " > " + right;
-            }else if(left !=null && right !=null &&"==".equals(op)){ 
+            }else if(left !=null && right !=null &&"==".equals(op)){
                 return left + " == " + right;
             }else if(left !=null && right !=null &&">=".equals(op)){ 
                 return left + " >= " + right;
@@ -400,7 +422,8 @@ public class InterRep extends splBaseVisitor<String> {
                 String temp = newTemp();
                 if (is_digit) {
                     // System.out.println("TEXT is " + text);
-                    emit(temp + " := " + "#" + text);
+//                    emit(temp + " := " + "#" + text);
+                    return "#" + text;
                 }
                 else{
                     symbolTable.put(text, temp);
