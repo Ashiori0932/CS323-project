@@ -12,9 +12,9 @@ public class InterRep extends splBaseVisitor<String> {
     private List<String> code = new ArrayList<>(); // 存储生成的三地址码
     private Map<String, String> symbolTable = new HashMap<>(); // 符号表
     private Map<String, String> functionTable = new HashMap<>(); // 函数表
-    private int tempCount = 1;
-    private int readCount = 1;
-    private int labelCount = 1;
+    private int tempCount = 0;
+    private int readCount = 0;
+    private int labelCount = 0;
 
     private String newTemp() {
         return "t" + (tempCount++);
@@ -29,7 +29,7 @@ public class InterRep extends splBaseVisitor<String> {
     private String gotoLabel(String label){
         return "GOTO " + label;
     }
-    
+
     private String getLabel(String label){
         return "LABEL " + label + " :";
     }
@@ -46,13 +46,13 @@ public class InterRep extends splBaseVisitor<String> {
         for (String line : code) {
             System.out.println(line);
         }
-        System.out.println("END");
+//        System.out.println("END");
         return null;
     }
 
     @Override
     public String visitExtDefList(splParser.ExtDefListContext ctx) {
-        
+
         if (ctx.extDef() != null){
             visitExtDef(ctx.extDef());
         }
@@ -76,7 +76,7 @@ public class InterRep extends splBaseVisitor<String> {
         return null;
     }
 
-    @Override 
+    @Override
     public String visitExtDecList(splParser.ExtDecListContext ctx){
         if(ctx.varDec()!=null){
             visitVarDec(ctx.varDec());
@@ -103,7 +103,7 @@ public class InterRep extends splBaseVisitor<String> {
 
     @Override
     public String visitCompSt(splParser.CompStContext ctx) {
-        
+
         if (ctx.defList() != null) {
             visitDefList(ctx.defList());
         }
@@ -112,10 +112,10 @@ public class InterRep extends splBaseVisitor<String> {
         }
         return null;
     }
-    
+
     @Override
     public String visitDefList(splParser.DefListContext ctx) {
-        
+
         // 处理变量声明
         if (ctx.def() != null) {
             visitDef(ctx.def());
@@ -128,7 +128,7 @@ public class InterRep extends splBaseVisitor<String> {
 
     @Override
     public String visitDef(splParser.DefContext ctx) {
-        
+
         // 处理单个变量声明
         if (ctx.decList() != null) {
             visitDecList(ctx.decList());
@@ -138,7 +138,7 @@ public class InterRep extends splBaseVisitor<String> {
 
     @Override
     public String visitDecList(splParser.DecListContext ctx){
-        
+
         if (ctx.dec() != null) {
             visitDec(ctx.dec());
         }
@@ -188,9 +188,9 @@ public class InterRep extends splBaseVisitor<String> {
     @Override
     public String visitDec(splParser.DecContext ctx) {
         if (ctx.ASSIGN() != null) {
-            
+
             // 变量赋值声明，例如 int a = 5;
-            
+
             String temp = visitVarDec(ctx.varDec());
 
             // String varName = ctx.varDec().getText();
@@ -232,17 +232,17 @@ public class InterRep extends splBaseVisitor<String> {
             String returnValue = visitExp(ctx.exp());
             emit("RETURN " + returnValue);
             return null;
-        } 
+        }
         else if(ctx.IF()!=null){
             //IF
             if(ctx.exp()!=null){
                 String new_label = newLabel();
                 emit("IF " + visitExp(ctx.exp()) + " " + gotoLabel(new_label));
                 String new_label2 = newLabel();
-                
+
                 String new_gotoLable = gotoLabel(new_label2);
                 emit(new_gotoLable);
-                
+
                 emit(getLabel(new_label));
                 if(ctx.stmt()!=null){
                     List<splParser.StmtContext> stmt_list = ctx.stmt();
@@ -275,11 +275,11 @@ public class InterRep extends splBaseVisitor<String> {
             String startLabel = newLabel();
             String endLabel = newLabel();
             String continueLabel = newLabel();
-            
+
             emit(getLabel(startLabel));
 
             String condition = visitExp(ctx.exp()); // 循环条件
-            
+
             emit("IF " + condition + " " + gotoLabel(continueLabel)); // 如果条件符合，前往循环继续标签
             emit(gotoLabel(endLabel)); // 如果条件不符合，前往循环结束标签
             emit(getLabel(continueLabel));
@@ -302,6 +302,7 @@ public class InterRep extends splBaseVisitor<String> {
 
     @Override
     public String visitExp(splParser.ExpContext ctx) {
+
         // deal with READ
         if(ctx != null && ctx.ID()!=null && ctx.ID().getText().equals("read")) {
 
@@ -311,23 +312,33 @@ public class InterRep extends splBaseVisitor<String> {
             return readtemp;
         }
         // write LP ARGS RP
-        else if(ctx != null && ctx.ID()!=null && (ctx.ID().getText().equals("write")||functionTable.containsKey(ctx.ID().getText()))){
-            // System.out.println("Find write");
-            if(ctx.ID().getText().equals("write") && ctx.args()!=null){
-                emit("WRITE " + visitArgs(ctx.args()));
-                return null;
-            }
-            else if(ctx.args()!=null){
+//        else if(ctx != null && ctx.ID()!=null && (ctx.ID().getText().equals("write")||functionTable.containsKey(ctx.ID().getText()))){
+//            // System.out.println("Find write");
+//            if(ctx.ID().getText().equals("write") && ctx.args()!=null){
+//                emit("WRITE " + visitArgs(ctx.args()));
+//                return null;
+//            }
+//            else if(ctx.args()!=null){
+//                visitArgs(ctx.args());
+//            }
+//            return "CALL " + ctx.ID().getText();
+//        }
+//         ID LP ARGS RP
+        else if (ctx != null && ctx.getChildCount() == 4) {
+//            System.out.println("Find function" + ctx.ID().getText());
+
+            if(ctx.args()!=null) {
+                if (ctx.ID().getText().equals("write")) {
+                    emit("WRITE " + visitArgs(ctx.args()));
+                    return null;
+                }
+
                 visitArgs(ctx.args());
+                String new_temp = newTemp();
+                emit(new_temp + " := " + "CALL " + ctx.ID().getText());
+                return new_temp;
             }
-            return "CALL " + ctx.ID().getText();
         }
-        // ID LP ARGS RP
-        // if (ctx != null && ctx.getChildCount() == 4 ) {
-        //     if(ctx.args()!=null){
-        //         visitArgs(ctx.args());
-        //     }
-        // }
         else if (ctx != null && ctx.getChildCount() == 3) {
             // 处理二元运算，例如 a + b, a = b
             String right = visitExp(ctx.exp(1));
@@ -417,7 +428,7 @@ public class InterRep extends splBaseVisitor<String> {
                 emit(temp + " := " + left + " " + op + " " + right);
                 return temp;
             }
-        } 
+        }
         else if (ctx != null && ctx.getChildCount() == 2) {
             // 处理单个变量或常量
             // -a
@@ -478,8 +489,11 @@ public class InterRep extends splBaseVisitor<String> {
         return null;
     }
 
-    @Override 
+    @Override
     public String visitArgs(splParser.ArgsContext ctx){
+        if(ctx.args()!=null){
+            visitArgs(ctx.args());
+        }
         if(ctx.exp()!=null){
             String tempp = visitExp(ctx.exp());
             emit("ARG " + tempp);
