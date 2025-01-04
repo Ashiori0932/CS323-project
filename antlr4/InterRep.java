@@ -474,16 +474,16 @@ public class InterRep extends splBaseVisitor<String> {
                         is_digit = false; // 如果遇到非数字字符，返回 false
                     }
                 }
-                String temp = newTemp();
                 if (is_digit) {
                     // System.out.println("TEXT is " + text);
 //                    emit(temp + " := " + "#" + text);
                     return "#" + text;
                 }
                 else{
+                    String temp = newTemp();
                     symbolTable.put(text, temp);
+                    return temp;
                 }
-                return temp;
             }
         }
         return null;
