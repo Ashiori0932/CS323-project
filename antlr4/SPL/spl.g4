@@ -9,17 +9,19 @@ program     : extDefList ;
 extDefList  : extDef extDefList
             | /* empty */ ;
 
-extDef      : specifier extDecList SEMI
-            | specifier SEMI
+extDef      : specifier extDecList SEMI?{
+                if ($SEMI == null) {
+                    System.out.println("Error type B at Line " + $specifier.start.getLine() + ": Missing semicolon \';\'");
+                }
+            }
+            | specifier SEMI? {
+                if ($SEMI == null) {
+                    System.out.println("Error type B at Line " + $specifier.start.getLine() + ": Missing semicolon \';\'");
+                }
+            }
             | specifier funDec compSt
-            | specifier extDecList {
-                System.err.println("Error type B at Line " + $specifier.start.getLine() + ": Missing semicolon \';\'");
-            }
-            | specifier {
-                System.err.println("Error type B at Line " + $specifier.start.getLine() + ": Missing semicolon \';\'");
-            }
-            |  extDecList SEMI{
-              System.err.println("Error type B at Line " + $extDecList.start.getLine() + ": Missing specifier");
+            | extDecList SEMI{
+                System.out.println("Error type B at Line " + $extDecList.start.getLine() + ": Missing specifier");
             }
             ;
 
@@ -27,9 +29,11 @@ extDef      : specifier extDecList SEMI
 extDecList  : varDec
             | varDec COMMA extDecList
             | varDec COMMA {
-                System.err.println("Error type B at Line " + $COMMA.line + ": Missing variable name");
+                System.out.println("Error type B at Line " + $COMMA.line + ": Missing variable name");
             }
-            | varDec COMMA COMMA extDecList{  System.err.println("Error type B at Line " + $COMMA.line + ": Unexpected ','");}
+            | varDec COMMA COMMA extDecList{  
+                System.out.println("Error type B at Line " + $COMMA.line + ": Unexpected ','");
+            }
             ;
 
 // Specifier
@@ -37,43 +41,52 @@ specifier   : TYPE
             | structSpecifier
             ;
 
-structSpecifier : STRUCT ID LC defList RC
-               | STRUCT ID
-               | STRUCT ID LC defList {
-                   System.err.println("Error type B at Line " + $STRUCT.line + ": Missing closing curly brace");
+structSpecifier : STRUCT ID LC defList RC? {
+                    if ($RC == null) {
+                        System.out.println("Error type B at Line " + $LC.line + ": Missing closing curly brace");
+                    }
                }
+               | STRUCT LC defList RC {
+                    System.out.println("Error type B at Line " + $STRUCT.line + ": Missing struct name");
+               }
+               | STRUCT ID
                ;
 
 // Declarator
 varDec      : ID
-            | varDec LB INT RB
-            | varDec LB INT {
-                System.err.println("Error type B at Line " + $LB.line + ": Missing closing bracket \']\'");
+            | varDec LB INT RB? {
+                if ($RB == null) {
+                    System.out.println("Error type B at Line " + $LB.line + ": Missing closing bracket \']\'");
+                }
             }
             | INVALID_ID
             ;
 
-funDec      : ID LP varList RP
-            | ID LP RP
-            | ID LP varList {
-                System.err.println("Error type B at Line " + $LP.line + ": Missing closing parenthesis \')\'");
+funDec      : ID LP varList RP? {
+                if ($RP == null) {
+                    System.out.println("Error type B at Line " + $LP.line + ": Missing closing parenthesis \')\'");
+                }
             }
-            | ID LP {
-                System.err.println("Error type B at Line " + $LP.line + ": Missing closing parenthesis \')\'");
+            | ID LP RP? {
+                if ($RP == null) {
+                    System.out.println("Error type B at Line " + $LP.line + ": Missing closing parenthesis \')\'");
+                }
             }
             ;
 
 varList     : paramDec COMMA varList
             | paramDec
-            | paramDec COMMA {System.err.println("Error type B at Line " + $COMMA.line + ": Missing variable");}
+            | paramDec COMMA {
+                System.out.println("Error type B at Line " + $COMMA.line + ": Missing variable");
+            }
             ;
 
 paramDec    : specifier varDec
-            |  varDec{
-                System.err.println("Error type B at Line " + $varDec.start.getLine() + ": Missing specifier");
+            | varDec {
+                System.out.println("Error type B at Line " + $varDec.start.getLine() + ": Missing specifier");
             }
-            | specifier{ 
-                System.err.println("Error type B at Line " + $specifier.start.getLine() + ": Missing variable name");
+            | specifier{
+                System.out.println("Error type B at Line " + $specifier.start.getLine() + ": Missing variable name");
             }
 
             ;
@@ -81,7 +94,7 @@ paramDec    : specifier varDec
 // Statement
 compSt      : LC defList stmtList RC? {
                 if ($RC == null) {
-                    System.err.println("Error type B at Line " + $LC.line + ": Missing closing curly bracket '}'");
+                    System.out.println("Error type B at Line " + $LC.line + ": Missing closing curly bracket '}'");
                 }
             }
 
@@ -97,44 +110,44 @@ stmt        : exp SEMI
             | IF LP exp RP stmt ELSE stmt
             | IF LP exp RP stmt
             | ELSE stmt {
-                System.err.println("Error type B at Line " + $ELSE.line + ": no 'if' before 'else'");
+                System.out.println("Error type B at Line " + $ELSE.line + ": no 'if' before 'else'");
             }
             | WHILE LP exp RP stmt
             | exp {
-                System.err.println("Error type B at Line " + $exp.start.getLine() + ": Missing semicolon \';\'");
+                System.out.println("Error type B at Line " + $exp.start.getLine() + ": Missing semicolon \';\'");
             }
             | RETURN exp {
-                System.err.println("Error type B at Line " + $RETURN.line + ": Missing semicolon \';\'");
+                System.out.println("Error type B at Line " + $RETURN.line + ": Missing semicolon \';\'");
             }
             | IF LP exp stmt {
-                System.err.println("Error type B at Line " + $LP.line + ": Missing closing parenthesis \')\'");
+                System.out.println("Error type B at Line " + $LP.line + ": Missing closing parenthesis \')\'");
             }
             | IF exp RP stmt {
-                System.err.println("Error type B at Line " + $RP.line + ": Missing opening parenthesis \'(\'");
+                System.out.println("Error type B at Line " + $RP.line + ": Missing opening parenthesis \'(\'");
             }
             | WHILE LP exp stmt {
-                System.err.println("Error type B at Line " + $LP.line + ": Missing closing parenthesis \')\'");
+                System.out.println("Error type B at Line " + $LP.line + ": Missing closing parenthesis \')\'");
             }
             | WHILE exp RP stmt {
-                System.err.println("Error type B at Line " + $RP.line + ": Missing opening parenthesis \'(\'");
+                System.out.println("Error type B at Line " + $RP.line + ": Missing opening parenthesis \'(\'");
             }
             ;
 
 // Local definition
-defList     :  | /* empty */
-                |def defList
-
+defList     : /* empty */
+            | def defList
             ;
 
-def         : specifier decList SEMI
-            | specifier decList {
-                System.err.println("Error type B at Line " + $specifier.start.getLine() + ": Missing semicolon \';\'");
+def         : specifier decList SEMI? {
+                if ($SEMI == null) {
+                    System.out.println("Error type B at Line " + $specifier.start.getLine() + ": Missing semicolon \';\'");
+                }
             }
             | decList SEMI  {
-                System.err.println("Error type B at Line " + $decList.start.getLine() + ": Missing specifier");
+                System.out.println("Error type B at Line " + $decList.start.getLine() + ": Missing specifier");
             }
-            |    IF LP RP {
-                System.err.println("Error type B at Line " + $LP.line + ": Missing specifier");
+            | IF LP RP {
+                System.out.println("Error type B at Line " + $LP.line + ": Missing specifier");
             }
             ;
 
@@ -152,22 +165,24 @@ exp         :
              exp MUL exp
             | exp DIV exp
             | exp MUL {
-                System.err.println("Error type B at Line " + $MUL.line + ": Missing Exp after *");
-                }
+                System.out.println("Error type B at Line " + $MUL.line + ": Missing Exp after *");
+            }
             | exp DIV {
-                System.err.println("Error type B at Line " + $DIV.line + ": Missing Exp after /");
-                }
+                System.out.println("Error type B at Line " + $DIV.line + ": Missing Exp after /");
+            }
             | exp PLUS exp
             | exp MINUS exp
             | exp PLUS {
-                System.err.println("Error type B at Line " + $PLUS.line + ": Missing Exp after +");
+                System.out.println("Error type B at Line " + $PLUS.line + ": Missing Exp after +");
             }
             | exp MINUS {
-                System.err.println("Error type B at Line " + $MINUS.line + ": Missing Exp after -");
+                System.out.println("Error type B at Line " + $MINUS.line + ": Missing Exp after -");
             }
+            | MINUS exp
+            | PLUS exp
             | exp ASSIGN exp
             | exp ASSIGN {
-                System.err.println("Error type B at Line " + $ASSIGN.line + ": Missing right value");
+                System.out.println("Error type B at Line " + $ASSIGN.line + ": Missing right value");
             }
             | exp NE exp
             | exp EQ exp
@@ -177,49 +192,51 @@ exp         :
             | exp GE exp
             | exp AND exp
             | exp OR exp
-            | LP exp RP
-            | MINUS exp
-            | NOT exp
-            | ID LP args RP?{
+            | LP exp RP? {
                 if ($RP == null) {
-                    System.err.println("Error type B at Line " + $LP.line + ": Missing closing parenthesis ')'");
+                    System.out.println("Error type B at Line " + $LP.line + ": Missing closing parenthesis ')'");
                 }
             }
-            | ID LP RP
-            | exp LB exp RB
-            | exp LB exp {
-                System.err.println("Error type B at Line " + $LB.line + ": Missing closing bracket \']\'");
+            | NOT exp
+            | ID LP args RP? {
+                if ($RP == null) {
+                    System.out.println("Error type B at Line " + $LP.line + ": Missing closing parenthesis ')'");
+                }
+            }
+            | ID LP RP? {
+                if ($RP == null) {
+                    System.out.println("Error type B at Line " + $LP.line + ": Missing closing parenthesis ')'");
+                }
+            }
+            | exp LB exp RB? {
+                if ($RB == null) {
+                    System.out.println("Error type B at Line " + $LB.line + ": Missing closing bracket \']\'");
+                }
             }
             | exp LB {
-                System.err.println("Error type B at Line " + $LB.line + ": Missing closing bracket \']\'");
-            }                                       
-            | exp DOT ID
-            | exp DOT {  System.err.println("Error type B at Line " + $DOT.line + ": Missing field name");}
+                System.out.println("Error type B at Line " + $LB.line + ": Missing closing bracket \']\'");
+            }
+            | exp DOT ID?{
+                if ($ID == null) {
+                    System.out.println("Error type B at Line " + $DOT.line + ": Missing field name");
+                }
+            }
             | INT
             | FLOAT
             | CHAR
             | ID
-            | LP exp {
-                System.err.println("Error type B at Line " + $LP.line + ": Missing closing parenthesis \')\'");
-            }
-            | ID LP args {
-                System.err.println("Error type B at Line " + $LP.line + ": Missing closing parenthesis \')\'");
-            }
-            | ID LP {
-                System.err.println("Error type B at Line " + $LP.line + ": Missing closing parenthesis \')\'");
-            }
             | INVALID_ID
             | INVALID_EXP
             | exp INVALID_EXP exp
             | INVALID_CHAR
-            | ASSIGN exp { 
-                System.err.println("Error type B at Line " + $ASSIGN.line + ": Unexpected statement");
+            | ASSIGN exp {
+                System.out.println("Error type B at Line " + $ASSIGN.line + ": Unexpected statement");
             }
             ;
 
 args        : exp COMMA args
             | exp COMMA {
-                System.err.println("Error type B at Line " + $COMMA.line + ": Missing arguments");
+                System.out.println("Error type B at Line " + $COMMA.line + ": Missing arguments");
             }
             | exp
             ;
@@ -257,28 +274,27 @@ RB: ']';
 LC: '{';
 RC: '}';
 
-INT: ('0'|[1-9][0-9]*) | ('0x'[1-9a-fA-F][0-9a-fA-F]+);
+INT: ('0'|[1-9][0-9]*) | ('0x0'|'0x'[1-9a-fA-F][0-9a-fA-F]+);
 
 ID: [a-zA-Z_][a-zA-Z_0-9]*;
 
 FLOAT: ('0'| [1-9][0-9]*) '.' [0-9]+ ;
 
-CHAR: '\'' ( '\\x' CHATTOKEN CHATTOKEN | . ) '\'';
-CHATTOKEN: [0-9a-fA-F];
+CHAR: '\'' ( '\\x' [0-9a-fA-F] [0-9a-fA-F] | . ) '\'';
 
 INVALID_CHAR: '\'' .*? '\'' {
-    System.err.println("Error type A at Line " + getLine() + ": unknown lexeme " + getText());
+    System.out.println("Error type A at Line " + getLine() + ": unknown lexeme " + getText());
 };
 
-LINE_COMMENT: '//' ~[\r\n]* -> skip;
-BLOCK_COMMENT: '/*' .*? '*/' -> skip;
+SL_COMMENT: '//' .*? '\n' -> skip;
+ML_COMMENT: '/*' .*? '*/' -> skip;
 
 WS: [ \t\r\n]+ -> skip;
 
 INVALID_ID: [0-9][a-zA-Z_0-9.]*{
-    System.err.println("Error type A at Line " + getLine() + ": unknown lexeme " + getText());
+    System.out.println("Error type A at Line " + getLine() + ": unknown lexeme " + getText());
 };
 
 INVALID_EXP: . {
-    System.err.println("Error type A at Line " + getLine() + ": unknown lexeme " + getText());
+    System.out.println("Error type A at Line " + getLine() + ": unknown lexeme " + getText());
 };
