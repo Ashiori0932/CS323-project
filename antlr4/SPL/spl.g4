@@ -170,8 +170,8 @@ exp         :
             | exp DIV {
                 System.out.println("Error type B at Line " + $DIV.line + ": Missing Exp after /");
             }
-            | exp PLUS exp
             | exp MINUS exp
+            | exp PLUS exp
             | exp PLUS {
                 System.out.println("Error type B at Line " + $PLUS.line + ": Missing Exp after +");
             }

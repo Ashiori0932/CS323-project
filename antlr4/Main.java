@@ -9,7 +9,7 @@ import SPL.splParser;
 
 public class Main {
     public static void main(String[] args) throws IOException {
-        InputStream is = new FileInputStream("./test/phase3/test_3_r02.spl"); // or System.in;
+        InputStream is = new FileInputStream("./test/test/test_4_r03.spl"); // or System.in;
         ANTLRInputStream input = new ANTLRInputStream(is);
         splLexer lexer = new splLexer(input);
         CommonTokenStream tokens = new CommonTokenStream(lexer);
