@@ -1,5 +1,8 @@
 # Project 1-词法分析与语法分析
 
+!!! WARNING: This folder is already deprecated.
+****
+
 ## test result
  
 | r1  | r2  | r3  | r4  | r5  | r6  | r7  | r8  | r9  | r10 | r11 | r12 |
