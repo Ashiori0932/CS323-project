@@ -28,19 +28,26 @@ Here is the instruction you may use for this repository
 1. generate lexer and parser
 
 ```
+cd antlr4
+cd SPL
 antlr4 SPL/spl.g4 
 ```
 
 2. compile
 
 ```
+cd ..
 javac SPL/*.java
 ```
 
 3. compile and run
 
 ```
-javac spltest.java && java spltest OR javac main.java && java main
+javac spltest.java && java spltest
+```
+OR
+```
+javac main.java && java main
 ```
 
 4. for test
