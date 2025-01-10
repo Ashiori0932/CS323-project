@@ -5,7 +5,7 @@ During this project, we aim to build a compiler for SPL(Sustech Programming Lang
 ## Tools
 We use antlr4 as the front-end tool for our compiler.
 
-### ANTLR4安装
+### Install ANTLR4
 
 ```
 cd /usr/local/lib
